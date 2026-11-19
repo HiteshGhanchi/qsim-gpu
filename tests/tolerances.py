@@ -13,7 +13,8 @@ ATOL_COMPLEX128 = 1e-9
 NORM_ATOL_COMPLEX128 = 1e-10
 
 # Single-precision GPU state vs double-precision oracle (max |amplitude difference|).
-# Placeholder until calibrated in phase 2.
+# Measured worst case over random circuits n=1..20, depth 100: 5.5e-7
+# (bench/results/tolerance_complex64_*.json). 1e-5 keeps an ~18x safety margin.
 ATOL_COMPLEX64 = 1e-5
 NORM_ATOL_COMPLEX64 = 1e-5
 

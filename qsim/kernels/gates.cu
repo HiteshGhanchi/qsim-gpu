@@ -33,3 +33,36 @@ extern "C" __global__ void apply_1q(cplx* __restrict__ psi, const idx_t n_work, 
         psi[i1] = m10 * a + m11 * b;
     }
 }
+
+// General k-qubit matrix (2^k x 2^k, row-major in `mat`) on k targets, applied where every
+// control bit is 1. Used for SWAP and other multi-target gates in the baseline, and for the
+// fused "unitary" gates produced by the fusion pass.
+//
+// target_pack holds the k target positions, 6 bits each (targets[0] in the lowest bits).
+// Bit i of a local index j selects the value of targets[i] (little-endian, like the matrix).
+// Work items: 2^(n - k - n_controls); each thread gathers 2^k amplitudes, multiplies, scatters.
+#define MAX_K 5
+extern "C" __global__ void apply_kq(cplx* __restrict__ psi, const idx_t n_work, const int k,
+                                    const idx_t target_pack, const idx_t fixed_mask,
+                                    const idx_t ctrl_mask, const cplx* __restrict__ mat) {
+    idx_t tbit[MAX_K];
+    for (int i = 0; i < k; ++i) tbit[i] = 1LL << ((target_pack >> (6 * i)) & 63);
+    const int dim = 1 << k;
+    const idx_t stride = (idx_t)blockDim.x * gridDim.x;
+    for (idx_t t = (idx_t)blockIdx.x * blockDim.x + threadIdx.x; t < n_work; t += stride) {
+        const idx_t base = insert_zero_bits(t, fixed_mask) | ctrl_mask;
+        cplx amp[1 << MAX_K];
+        for (int j = 0; j < dim; ++j) {
+            idx_t off = 0;
+            for (int i = 0; i < k; ++i) if ((j >> i) & 1) off |= tbit[i];
+            amp[j] = psi[base | off];
+        }
+        for (int r = 0; r < dim; ++r) {
+            cplx acc = cplx(0, 0);
+            for (int c = 0; c < dim; ++c) acc += mat[r * dim + c] * amp[c];
+            idx_t off = 0;
+            for (int i = 0; i < k; ++i) if ((r >> i) & 1) off |= tbit[i];
+            psi[base | off] = acc;
+        }
+    }
+}

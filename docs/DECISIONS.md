@@ -42,3 +42,27 @@ Other choices made while building Phase 0:
   complex128 study honest: both use identical kernel code.
 - **GPU tests skip themselves** when CuPy or a usable device is missing, so `pytest` works on
   any machine.
+
+## Phase 2–3 decisions
+
+**OQ16, complex64 tolerance = 1e-5.** Measured with `python -m bench.run_tolerance`: over random
+circuits with n = 1..20 and depth 100 (5 seeds per n), the largest amplitude difference
+between the complex64 GPU state and the complex128 oracle was 5.5e-7, and the largest norm drift
+was below 4e-7 (`bench/results/tolerance_complex64_one_qubit.json`, `..._all_gates.json`).
+1e-5 leaves an ~18x margin. Single-precision rounding is ~6e-8 per operation, so the measured
+error is a few rounding steps, not something growing with depth.
+
+**OQ7, sampling = two-pass chunked.** `sample()` splits the state into 1024-amplitude chunks:
+pass 1 writes one probability total per chunk (accumulated in double), the host picks a chunk per
+shot from the cumulative sums, and pass 2 walks inside the chosen chunk. Extra memory is
+2^n / 1024 doubles. The simple alternative (`sample_cumsum`, a float64 cumulative sum over all
+amplitudes) needs 8 bytes per amplitude, which is more than the complex64 state itself (and at
+30 qubits would be an extra 8 GiB). Both pass the same chi-square test against the exact
+probabilities (200,000 shots, n up to 14). Their speeds have not been compared.
+
+**Reductions accumulate in double.** Expectation values, norms and sampling chunk totals sum in
+double precision even for a complex64 state. A float32 running sum over 2^28 terms would lose
+digits.
+
+**Norm uses the expectation kernel.** `amplitude_norm()` runs the Pauli kernel with empty masks
+(<psi|psi>), so it needs no full-size temporary array.
