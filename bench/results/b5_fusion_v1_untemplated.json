@@ -1,0 +1,314 @@
+{
+  "benchmark": "b5_fusion",
+  "environment": {
+    "timestamp_utc": "2026-11-19T13:24:42+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "1d966fd",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "[System is not in ready state]",
+        "current_mem_clock": "[System is not in ready state]",
+        "power_draw": "10.01 W",
+        "temperature_c": "72",
+        "clock_event_reasons": "[System is not in ready state]",
+        "pcie_gen": "1"
+      },
+      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "n": 22,
+  "dtype": "complex64",
+  "rows": [
+    {
+      "circuit": "qft",
+      "variant": "unfused, general kernels",
+      "passes": 264,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 1494.79058200086,
+        "min_ms": 1494.4519489981758,
+        "max_ms": 1497.333699997398,
+        "all_ms": [
+          1495.042499002011,
+          1497.333699997398,
+          1494.79058200086,
+          1494.4519489981758,
+          1494.7586299967952
+        ]
+      },
+      "speedup_vs_unfused_general": 1.0
+    },
+    {
+      "circuit": "qft",
+      "variant": "unfused, specialised kernels",
+      "passes": 264,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 810.5023269999947,
+        "min_ms": 810.4413030014257,
+        "max_ms": 812.6022399992507,
+        "all_ms": [
+          810.4413030014257,
+          810.7167609996395,
+          812.6022399992507,
+          810.4829100011557,
+          810.5023269999947
+        ]
+      },
+      "speedup_vs_unfused_general": 1.8442767308684973
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=1",
+      "passes": 264,
+      "fusion_host_ms": 0.328491998516256,
+      "timing": {
+        "median_ms": 810.5218970013084,
+        "min_ms": 810.3610889993433,
+        "max_ms": 810.762479002733,
+        "all_ms": [
+          810.5218970013084,
+          810.6984530022601,
+          810.3610889993433,
+          810.762479002733,
+          810.3672649995133
+        ]
+      },
+      "speedup_vs_unfused_general": 1.8442322009203498
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=2",
+      "passes": 242,
+      "fusion_host_ms": 4.414629001985304,
+      "timing": {
+        "median_ms": 893.6468639985833,
+        "min_ms": 893.4460410018801,
+        "max_ms": 893.793289000314,
+        "all_ms": [
+          893.4460410018801,
+          893.5498940008983,
+          893.793289000314,
+          893.6976089971722,
+          893.6468639985833
+        ]
+      },
+      "speedup_vs_unfused_general": 1.6726859817002946
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=3",
+      "passes": 131,
+      "fusion_host_ms": 38.01447500154609,
+      "timing": {
+        "median_ms": 2201.00190499943,
+        "min_ms": 2197.423087000061,
+        "max_ms": 2205.7056589983404,
+        "all_ms": [
+          2199.6937049989356,
+          2197.423087000061,
+          2201.3400780015218,
+          2205.7056589983404,
+          2201.00190499943
+        ]
+      },
+      "speedup_vs_unfused_general": 0.6791409760280273
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=4",
+      "passes": 88,
+      "fusion_host_ms": 67.01578399952268,
+      "timing": {
+        "median_ms": 3031.489966000663,
+        "min_ms": 2970.8322990009037,
+        "max_ms": 3064.098180999281,
+        "all_ms": [
+          3017.6424450000923,
+          3064.098180999281,
+          2970.8322990009037,
+          3032.713461001549,
+          3031.489966000663
+        ]
+      },
+      "speedup_vs_unfused_general": 0.49308775511894043
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=5",
+      "passes": 65,
+      "fusion_host_ms": 125.59927500115009,
+      "timing": {
+        "median_ms": 9106.905832999473,
+        "min_ms": 9095.313896999869,
+        "max_ms": 9119.015711999964,
+        "all_ms": [
+          9114.306958002999,
+          9119.015711999964,
+          9095.313896999869,
+          9102.611696998792,
+          9106.905832999473
+        ]
+      },
+      "speedup_vs_unfused_general": 0.1641381397163884
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "unfused, general kernels",
+      "passes": 100,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 729.0713889997278,
+        "min_ms": 728.940879998845,
+        "max_ms": 730.2074969993555,
+        "all_ms": [
+          728.992587999528,
+          730.2074969993555,
+          729.1078250018472,
+          729.0713889997278,
+          728.940879998845
+        ]
+      },
+      "speedup_vs_unfused_general": 1.0
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "unfused, specialised kernels",
+      "passes": 100,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 511.9904549974308,
+        "min_ms": 511.83302299978095,
+        "max_ms": 512.0700730003591,
+        "all_ms": [
+          512.0594680010981,
+          511.93214299928513,
+          511.83302299978095,
+          512.0700730003591,
+          511.9904549974308
+        ]
+      },
+      "speedup_vs_unfused_general": 1.4239941035685642
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=1",
+      "passes": 99,
+      "fusion_host_ms": 0.39921900315675884,
+      "timing": {
+        "median_ms": 511.8511699984083,
+        "min_ms": 511.67052300297655,
+        "max_ms": 513.6548109985597,
+        "all_ms": [
+          512.0101469983638,
+          513.6548109985597,
+          511.78008199713076,
+          511.67052300297655,
+          511.8511699984083
+        ]
+      },
+      "speedup_vs_unfused_general": 1.4243816010071737
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=2",
+      "passes": 79,
+      "fusion_host_ms": 3.1561049981974065,
+      "timing": {
+        "median_ms": 556.4425779994053,
+        "min_ms": 556.2577029995737,
+        "max_ms": 556.5859310008818,
+        "all_ms": [
+          556.2577029995737,
+          556.3831750005193,
+          556.5859310008818,
+          556.4425779994053,
+          556.5116569996462
+        ]
+      },
+      "speedup_vs_unfused_general": 1.3102365236337234
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=3",
+      "passes": 55,
+      "fusion_host_ms": 8.584953000536188,
+      "timing": {
+        "median_ms": 615.1318150004954,
+        "min_ms": 614.4880370011379,
+        "max_ms": 616.8960760005575,
+        "all_ms": [
+          615.1318150004954,
+          615.1098020018253,
+          616.8960760005575,
+          614.4880370011379,
+          615.4487569983758
+        ]
+      },
+      "speedup_vs_unfused_general": 1.1852278994854795
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=4",
+      "passes": 42,
+      "fusion_host_ms": 17.572834996826714,
+      "timing": {
+        "median_ms": 970.730946999538,
+        "min_ms": 958.2619659995544,
+        "max_ms": 976.8021059971943,
+        "all_ms": [
+          975.3701599984197,
+          976.8021059971943,
+          958.2619659995544,
+          962.8281949990196,
+          970.730946999538
+        ]
+      },
+      "speedup_vs_unfused_general": 0.7510540291861889
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=5",
+      "passes": 31,
+      "fusion_host_ms": 37.94254799868213,
+      "timing": {
+        "median_ms": 3484.015878999344,
+        "min_ms": 3462.1885920023487,
+        "max_ms": 3500.6536090004374,
+        "all_ms": [
+          3500.6536090004374,
+          3484.015878999344,
+          3481.190902999515,
+          3493.6479770003643,
+          3462.1885920023487
+        ]
+      },
+      "speedup_vs_unfused_general": 0.2092617870642791
+    }
+  ]
+}

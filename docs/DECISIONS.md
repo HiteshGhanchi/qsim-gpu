@@ -181,3 +181,42 @@ same GPU clock caveat as Phase 6, but both paths ran under identical conditions)
 moving fewer bytes. That's the clearest evidence that the simulator is memory-bound. The
 copy kernel took 33.6 ms on the same state, so specialised Z/T/CZ/CP and SWAP now run
 *faster than a full copy*: they don't need to touch the whole state.
+
+## Phase 7.2: gate fusion (B5) and OQ9
+
+`qsim/passes/fusion.py` greedily merges consecutive gates while the union of their qubits stays
+≤ m and replaces each block with one `unitary` gate (its matrix is computed by running the block on
+a small NumPy simulator, one column per basis state). Blocks of one gate stay unchanged so they keep
+their specialised kernel. Fused circuits are tested against the unfused ones for m = 1..5.
+
+**First attempt: fewer passes, slower circuits** (`b5_fusion_v1_untemplated.json`, n = 22). For
+the depth-100 random circuit, m = 3 cut the passes from 100 to 55, yet ran only 1.19× faster
+than the general-kernel baseline, slower than the unfused specialised kernels (1.42×). At m = 5,
+65 passes took 9.1 s against 1.5 s unfused. There were two causes:
+1. The multi-target kernel used a runtime k and arrays sized for the maximum (32 amplitudes per
+   thread). That doesn't fit in registers, so it spills to local memory, adding memory traffic
+   in a memory-bound kernel.
+2. A fused block always reads and writes the whole state, so it loses the savings of
+   specialised kernels (a CP alone touches a quarter of the state).
+
+**Fix: one compiled kernel per k** (`apply_k1` … `apply_k5`, a C++ template with compile-time K,
+unrolled loops, matrix in shared memory). Re-measured (`b5_fusion.json`, same n and circuits,
+specialised kernels for unfused gates):
+
+| Circuit | Unfused (general) | Unfused (specialised) | m=2 | m=3 | m=4 | m=5 |
+|---|---|---|---|---|---|---|
+| random depth 100: passes | 100 | 100 | 79 | 55 | 42 | 31 |
+| random depth 100: time | 675 ms | 512 ms | 421 ms | **325 ms** | 2306 ms | 6369 ms |
+| QFT: passes | 264 | 264 | 242 | 131 | 88 | 65 |
+| QFT: time | 1421 ms | 810 ms | **752 ms** | 1025 ms | 7617 ms | 15876 ms |
+
+**Decision (OQ9): default fused width m = 3** (best for random circuits: 2.08× over the general
+baseline, 1.58× over specialised kernels alone). For QFT, m = 2 is best and m = 3 already loses to
+the unfused specialised run, because most QFT gates are controlled phases that the specialised
+kernel handles on a quarter of the state. m ≥ 4 is much slower here. A 16×16 or 32×32 complex
+multiply per amplitude group is no longer memory-bound on this GPU, and the unrolled kernel
+needs more registers than are available. All of this was measured with the GPU's clocks in the
+degraded state described in Phase 6, so the best m should be re-checked on a healthy GPU and
+on the T4.
+
+Fusion cost on the host: 4–130 ms per circuit (m = 2..5), paid once per circuit, not per run.

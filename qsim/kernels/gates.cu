@@ -35,37 +35,64 @@ extern "C" __global__ void apply_1q(cplx* __restrict__ psi, const idx_t n_work, 
 }
 
 // General k-qubit matrix (2^k x 2^k, row-major in `mat`) on k targets, applied where every
-// control bit is 1. Used for SWAP and other multi-target gates in the baseline, and for the
-// fused "unitary" gates produced by the fusion pass.
+// control bit is 1. Used for SWAP and other multi-target gates in the general path, and for
+// the fused "unitary" gates produced by the fusion pass.
 //
 // target_pack holds the k target positions, 6 bits each (targets[0] in the lowest bits).
 // Bit i of a local index j selects the value of targets[i] (little-endian, like the matrix).
 // Work items: 2^(n - k - n_controls); each thread gathers 2^k amplitudes, multiplies, scatters.
-#define MAX_K 5
-extern "C" __global__ void apply_kq(cplx* __restrict__ psi, const idx_t n_work, const int k,
-                                    const idx_t target_pack, const idx_t fixed_mask,
-                                    const idx_t ctrl_mask, const cplx* __restrict__ mat) {
-    idx_t tbit[MAX_K];
-    for (int i = 0; i < k; ++i) tbit[i] = 1LL << ((target_pack >> (6 * i)) & 63);
-    const int dim = 1 << k;
+//
+// K is a compile-time constant, one kernel per size (apply_k1 .. apply_k5). With a fixed K
+// the loops unroll and the 2^K amplitudes stay in registers instead of spilling to local
+// memory. The matrix is copied into shared memory once per block.
+template <int K>
+__device__ __forceinline__ void apply_kq_impl(cplx* __restrict__ psi, const idx_t n_work,
+                                              const idx_t target_pack, const idx_t fixed_mask,
+                                              const idx_t ctrl_mask,
+                                              const cplx* __restrict__ mat) {
+    constexpr int DIM = 1 << K;
+    __shared__ cplx smat[DIM * DIM];
+    for (int i = threadIdx.x; i < DIM * DIM; i += blockDim.x) smat[i] = mat[i];
+    __syncthreads();
+    idx_t tbit[K];
+#pragma unroll
+    for (int i = 0; i < K; ++i) tbit[i] = 1LL << ((target_pack >> (6 * i)) & 63);
     const idx_t stride = (idx_t)blockDim.x * gridDim.x;
     for (idx_t t = (idx_t)blockIdx.x * blockDim.x + threadIdx.x; t < n_work; t += stride) {
         const idx_t base = insert_zero_bits(t, fixed_mask) | ctrl_mask;
-        cplx amp[1 << MAX_K];
-        for (int j = 0; j < dim; ++j) {
+        cplx amp[DIM];
+#pragma unroll
+        for (int j = 0; j < DIM; ++j) {
             idx_t off = 0;
-            for (int i = 0; i < k; ++i) if ((j >> i) & 1) off |= tbit[i];
+#pragma unroll
+            for (int i = 0; i < K; ++i) if ((j >> i) & 1) off |= tbit[i];
             amp[j] = psi[base | off];
         }
-        for (int r = 0; r < dim; ++r) {
+#pragma unroll
+        for (int r = 0; r < DIM; ++r) {
             cplx acc = cplx(0, 0);
-            for (int c = 0; c < dim; ++c) acc += mat[r * dim + c] * amp[c];
+#pragma unroll
+            for (int c = 0; c < DIM; ++c) acc += smat[r * DIM + c] * amp[c];
             idx_t off = 0;
-            for (int i = 0; i < k; ++i) if ((r >> i) & 1) off |= tbit[i];
+#pragma unroll
+            for (int i = 0; i < K; ++i) if ((r >> i) & 1) off |= tbit[i];
             psi[base | off] = acc;
         }
     }
 }
+
+#define DEFINE_APPLY_K(K)                                                                   \
+    extern "C" __global__ void apply_k##K(cplx* __restrict__ psi, const idx_t n_work,       \
+                                          const idx_t target_pack, const idx_t fixed_mask,  \
+                                          const idx_t ctrl_mask,                            \
+                                          const cplx* __restrict__ mat) {                   \
+        apply_kq_impl<K>(psi, n_work, target_pack, fixed_mask, ctrl_mask, mat);             \
+    }
+DEFINE_APPLY_K(1)
+DEFINE_APPLY_K(2)
+DEFINE_APPLY_K(3)
+DEFINE_APPLY_K(4)
+DEFINE_APPLY_K(5)
 
 // ---------------------------------------------------------------------------------------
 // Specialised kernels (one per gate family). They do the same job as apply_1q/apply_kq for

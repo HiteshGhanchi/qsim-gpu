@@ -21,7 +21,7 @@ from qsim.kernels import build_source
 BLOCK = 256           # threads per block (also the reduction width in measure/expect.cu)
 MAX_BLOCKS = 65535    # grid-stride loops cover any remaining work
 REDUCE_BLOCKS = 1024  # blocks for reductions: 1024 partial sums, added on the host
-MAX_K = 5             # largest multi-target matrix the apply_kq kernel accepts
+MAX_K = 5             # largest multi-target matrix (kernels apply_k1 .. apply_k5)
 CHUNK_LOG2 = 10       # sampling chunk = 1024 amplitudes
 
 
@@ -61,7 +61,7 @@ class CudaBackend:
         m = _module("measure.cu", self.dtype.name)
         e = _module("expect.cu", self.dtype.name)
         self._k_apply_1q = g.get_function("apply_1q")
-        self._k_apply_kq = g.get_function("apply_kq")
+        self._k_apply_k = {k: g.get_function(f"apply_k{k}") for k in range(1, MAX_K + 1)}
         self._k_phase = g.get_function("apply_phase")
         self._k_diag = g.get_function("apply_diag")
         self._k_x = g.get_function("apply_x")
@@ -136,15 +136,15 @@ class CudaBackend:
         """General 2^k x 2^k kernel: one thread per group of 2^k amplitudes."""
         k = len(targets)
         if not 1 <= k <= MAX_K:
-            raise ValueError(f"apply_kq supports 1..{MAX_K} targets, got {k}")
+            raise ValueError(f"multi-target kernels support 1..{MAX_K} targets, got {k}")
         n_work = 1 << (self.n_qubits - k - len(controls))
         pack = 0
         for i, t in enumerate(targets):
             pack |= t << (6 * i)
         mat = self._cp.asarray(np.ascontiguousarray(m, dtype=self.dtype))
-        args = (self._psi, np.int64(n_work), np.int32(k), np.int64(pack),
+        args = (self._psi, np.int64(n_work), np.int64(pack),
                 np.int64(_mask(targets + controls)), np.int64(_mask(controls)), mat)
-        self._k_apply_kq(self._grid(n_work), (BLOCK,), args)
+        self._k_apply_k[k](self._grid(n_work), (BLOCK,), args)
 
     def _apply_specialized(self, gate: Gate) -> bool:
         """Use a family-specific kernel if one fits. Returns False to fall back."""
