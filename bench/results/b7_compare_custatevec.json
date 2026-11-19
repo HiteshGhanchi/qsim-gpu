@@ -1,0 +1,229 @@
+{
+  "benchmark": "b7_compare_custatevec",
+  "environment": {
+    "timestamp_utc": "2026-11-19T13:17:50+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "71e7ed3-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "[System is not in ready state]",
+        "current_mem_clock": "[System is not in ready state]",
+        "power_draw": "10.01 W",
+        "temperature_c": "72",
+        "clock_event_reasons": "[System is not in ready state]",
+        "pcie_gen": "1"
+      },
+      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": null,
+      "cupy-cuda12x": "14.2.0",
+      "qiskit": null,
+      "qiskit-aer": null,
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": "26.11.0",
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "engine": "custatevec",
+  "dtype": "complex64",
+  "rows": [
+    {
+      "circuit": "qft",
+      "n": 10,
+      "gates": 60,
+      "timing": {
+        "median_ms": 0.38950599991949275,
+        "min_ms": 0.37708200034103356,
+        "max_ms": 0.39330299841822125,
+        "all_ms": [
+          0.39330299841822125,
+          0.37708200034103356,
+          0.38950599991949275
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 10,
+      "gates": 100,
+      "timing": {
+        "median_ms": 0.6897349994687829,
+        "min_ms": 0.6381569983204827,
+        "max_ms": 0.8944969995354768,
+        "all_ms": [
+          0.6381569983204827,
+          0.8944969995354768,
+          0.6897349994687829
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 14,
+      "gates": 112,
+      "timing": {
+        "median_ms": 0.7149900011427235,
+        "min_ms": 0.6976350014156196,
+        "max_ms": 0.8691549992363434,
+        "all_ms": [
+          0.8691549992363434,
+          0.6976350014156196,
+          0.7149900011427235
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 14,
+      "gates": 100,
+      "timing": {
+        "median_ms": 0.6845490024716128,
+        "min_ms": 0.546094001038,
+        "max_ms": 0.726867001503706,
+        "all_ms": [
+          0.726867001503706,
+          0.6845490024716128,
+          0.546094001038
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 18,
+      "gates": 180,
+      "timing": {
+        "median_ms": 51.84185599864577,
+        "min_ms": 51.79936700005783,
+        "max_ms": 52.04822499945294,
+        "all_ms": [
+          51.84185599864577,
+          52.04822499945294,
+          51.79936700005783
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 18,
+      "gates": 100,
+      "timing": {
+        "median_ms": 32.25889500026824,
+        "min_ms": 32.226166000327794,
+        "max_ms": 32.27498400156037,
+        "all_ms": [
+          32.27498400156037,
+          32.226166000327794,
+          32.25889500026824
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 20,
+      "gates": 220,
+      "timing": {
+        "median_ms": 302.50207500284887,
+        "min_ms": 302.4882889985747,
+        "max_ms": 302.5771930006158,
+        "all_ms": [
+          302.5771930006158,
+          302.4882889985747,
+          302.50207500284887
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 20,
+      "gates": 100,
+      "timing": {
+        "median_ms": 169.87548599718139,
+        "min_ms": 169.87055400022655,
+        "max_ms": 169.90690300008282,
+        "all_ms": [
+          169.87055400022655,
+          169.90690300008282,
+          169.87548599718139
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 22,
+      "gates": 264,
+      "timing": {
+        "median_ms": 1421.7467000016768,
+        "min_ms": 1421.5942880000512,
+        "max_ms": 1421.9928870006697,
+        "all_ms": [
+          1421.9928870006697,
+          1421.5942880000512,
+          1421.7467000016768
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 22,
+      "gates": 100,
+      "timing": {
+        "median_ms": 675.729621998471,
+        "min_ms": 675.5971429993224,
+        "max_ms": 677.5159469980281,
+        "all_ms": [
+          677.5159469980281,
+          675.729621998471,
+          675.5971429993224
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 24,
+      "gates": 312,
+      "timing": {
+        "median_ms": 6609.134115999041,
+        "min_ms": 6609.1222610011755,
+        "max_ms": 6611.036501999479,
+        "all_ms": [
+          6611.036501999479,
+          6609.134115999041,
+          6609.1222610011755
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 24,
+      "gates": 100,
+      "timing": {
+        "median_ms": 2577.480777999881,
+        "min_ms": 2576.9736299989745,
+        "max_ms": 2578.755522001302,
+        "all_ms": [
+          2577.480777999881,
+          2578.755522001302,
+          2576.9736299989745
+        ]
+      }
+    }
+  ],
+  "max_abs_diff_vs_oracle_n8": 4.2644552418649236e-08
+}

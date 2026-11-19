@@ -1,0 +1,223 @@
+{
+  "benchmark": "b7_compare_aer-gpu",
+  "environment": {
+    "timestamp_utc": "2026-11-19T13:17:01+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "71e7ed3-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "[System is not in ready state]",
+        "current_mem_clock": "[System is not in ready state]",
+        "power_draw": "10.01 W",
+        "temperature_c": "71",
+        "clock_event_reasons": "[System is not in ready state]",
+        "pcie_gen": "1"
+      },
+      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
+      "cupy_error": "ModuleNotFoundError: No module named 'cupy'"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": null,
+      "qiskit": "2.6.2",
+      "qiskit-aer": null,
+      "qiskit-aer-gpu": "0.18.4",
+      "cuquantum-python-cu12": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "engine": "aer-gpu",
+  "dtype": "complex64",
+  "rows": [
+    {
+      "circuit": "qft",
+      "n": 10,
+      "gates": 60,
+      "timing": {
+        "median_ms": 3.5340079994057305,
+        "min_ms": 3.32660899948678,
+        "max_ms": 3.68910799807054,
+        "all_ms": [
+          3.68910799807054,
+          3.32660899948678,
+          3.5340079994057305
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 10,
+      "gates": 100,
+      "timing": {
+        "median_ms": 6.502955002360977,
+        "min_ms": 6.202257001859834,
+        "max_ms": 6.7050029974780045,
+        "all_ms": [
+          6.202257001859834,
+          6.7050029974780045,
+          6.502955002360977
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 14,
+      "gates": 112,
+      "timing": {
+        "median_ms": 7.361732998106163,
+        "min_ms": 6.956527999136597,
+        "max_ms": 7.555075000709621,
+        "all_ms": [
+          6.956527999136597,
+          7.361732998106163,
+          7.555075000709621
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 14,
+      "gates": 100,
+      "timing": {
+        "median_ms": 5.348145998141263,
+        "min_ms": 5.3265319984348025,
+        "max_ms": 5.731377998017706,
+        "all_ms": [
+          5.348145998141263,
+          5.731377998017706,
+          5.3265319984348025
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 18,
+      "gates": 180,
+      "timing": {
+        "median_ms": 45.686100998864276,
+        "min_ms": 45.371071002591634,
+        "max_ms": 48.910910001723096,
+        "all_ms": [
+          45.686100998864276,
+          48.910910001723096,
+          45.371071002591634
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 18,
+      "gates": 100,
+      "timing": {
+        "median_ms": 32.053473998530535,
+        "min_ms": 30.63249799743062,
+        "max_ms": 32.906429001741344,
+        "all_ms": [
+          32.053473998530535,
+          30.63249799743062,
+          32.906429001741344
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 20,
+      "gates": 220,
+      "timing": {
+        "median_ms": 187.54047200127388,
+        "min_ms": 184.10232700261986,
+        "max_ms": 187.57897300019977,
+        "all_ms": [
+          187.57897300019977,
+          184.10232700261986,
+          187.54047200127388
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 20,
+      "gates": 100,
+      "timing": {
+        "median_ms": 100.50101500019082,
+        "min_ms": 99.06246299942723,
+        "max_ms": 100.8760059994529,
+        "all_ms": [
+          100.8760059994529,
+          99.06246299942723,
+          100.50101500019082
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 22,
+      "gates": 264,
+      "timing": {
+        "median_ms": 809.1833799990127,
+        "min_ms": 808.9863839995814,
+        "max_ms": 811.3626900012605,
+        "all_ms": [
+          809.1833799990127,
+          811.3626900012605,
+          808.9863839995814
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 22,
+      "gates": 100,
+      "timing": {
+        "median_ms": 454.95386900074664,
+        "min_ms": 454.24528299918165,
+        "max_ms": 461.2440249984502,
+        "all_ms": [
+          461.2440249984502,
+          454.24528299918165,
+          454.95386900074664
+        ]
+      }
+    },
+    {
+      "circuit": "qft",
+      "n": 24,
+      "gates": 312,
+      "timing": {
+        "median_ms": 3689.7198219994607,
+        "min_ms": 3672.9717909984174,
+        "max_ms": 3783.297041001788,
+        "all_ms": [
+          3783.297041001788,
+          3672.9717909984174,
+          3689.7198219994607
+        ]
+      }
+    },
+    {
+      "circuit": "random_d100",
+      "n": 24,
+      "gates": 100,
+      "timing": {
+        "median_ms": 1843.8374149991432,
+        "min_ms": 1786.5280879996135,
+        "max_ms": 1846.8942420004169,
+        "all_ms": [
+          1843.8374149991432,
+          1786.5280879996135,
+          1846.8942420004169
+        ]
+      }
+    }
+  ]
+}

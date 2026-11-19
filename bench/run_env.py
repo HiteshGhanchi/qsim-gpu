@@ -49,6 +49,17 @@ def _gpu_info() -> dict[str, Any]:
         name, mem, driver, sm_clock, mem_clock = [s.strip() for s in smi.splitlines()[0].split(",")]
         info.update(nvidia_smi_name=name, memory_total=mem, driver=driver,
                     max_sm_clock=sm_clock, max_mem_clock=mem_clock)
+    state = _run(["nvidia-smi", "--query-gpu=pstate,clocks.sm,clocks.mem,power.draw,"
+                  "temperature.gpu,clocks_event_reasons.active,pcie.link.gen.current",
+                  "--format=csv,noheader"])
+    if state:
+        keys = ["pstate", "current_sm_clock", "current_mem_clock", "power_draw",
+                "temperature_c", "clock_event_reasons", "pcie_gen"]
+        info["state_at_run"] = dict(zip(keys, [v.strip() for v in state.splitlines()[0].split(",")],
+                                        strict=False))
+        if "not in ready state" in state:
+            info["warning"] = ("driver reports 'System is not in ready state' for clocks; "
+                               "bandwidth numbers from this run are not representative")
     try:
         import cupy as cp
 

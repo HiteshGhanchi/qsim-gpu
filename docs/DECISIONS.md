@@ -116,3 +116,41 @@ All are well inside chemical accuracy (1.6e-3 Ha). The two single-excitation ang
 4.5e-6 at every point (expected ~0 by symmetry, and now measured rather than assumed). On a 4-qubit state the GPU run
 was slower than NumPy (22.6 s vs 10.2 s wall time): each kernel launch costs more than the
 16-amplitude update it performs. The GPU only pays off for large states.
+
+## Phase 6: baseline measurements (before any optimisation)
+
+**Caveat that affects every number below.** During these runs the laptop GPU driver reported
+"System is not in ready state" for its clocks (recorded in each JSON under
+`environment.gpu.state_at_run` and `warning`). DRAM copy bandwidth was only 1.5–9 GB/s and
+drifted between runs, while an RTX 3050 Laptop GPU is specified far higher. So the
+**absolute** numbers are not representative, and comparisons are only fair *within one run*.
+These benchmarks must be re-run after a reboot (and on a Colab T4) before any headline figure
+is quoted. The scripts and the analysis method don't change.
+
+What the baseline showed, with that caveat:
+
+- **B0, bandwidth** (`b0_bandwidth.json`). Our copy kernel and `cupy.copyto` give the same
+  bandwidth at every size (within ~5%), so the copy kernel is a fair yardstick. Small buffers
+  (2^16 amplitudes = 512 KiB) ran far faster than large ones in the first run: they fit in the
+  2 MiB L2 cache.
+- **B2, scaling** (`b2_scaling_complex64.json`). Up to 17 qubits (1 MiB state) a gate takes a flat
+  ~0.009–0.010 ms: the state sits in L2 and the time is mostly launch overhead. From 18 qubits on,
+  every extra qubit doubles the time (×2.00 per step up to 28 qubits). That's the
+  memory-bound regime the roofline argument predicts.
+- **B1, target qubit** (`b1_target_baseline.json`, n = 26). Targets 0–7 took ~700 ms per H gate and
+  targets 8–25 ~135 ms, about 5× slower for low targets. But B3 at n = 24, measured minutes later, found no low-target
+  penalty. Given the unstable clocks, this stays an **open observation** (OQ10) to re-measure
+  on a healthy GPU, not a conclusion.
+- **B3, efficiency** (`b3_efficiency_baseline.json`, n = 24, same process as its copy timing).
+  The general 1-qubit kernel ran at 99.6–100% of copy bandwidth for H, Rz and X. Controlled gates
+  (CX, CZ) took half the copy time, since they only touch the half of the state where the control
+  is 1. SWAP through the general 4×4 kernel took 1.8× the copy time. That kernel keeps 32
+  complex values per thread in a local array, which likely spills to local memory: a
+  candidate for a specialised kernel.
+- **B7, comparison** (`b7_compare_*.json`, complex64, QFT and a depth-100 random circuit,
+  n = 10–24). Below 18 qubits, qsim and cuStateVec take about 1 ms per circuit while Aer (CPU or GPU) takes 3–13 ms,
+  because Aer has a fixed per-run setup cost. From 18 qubits up, qsim and cuStateVec track
+  each other closely (n = 24 QFT: 6.9 s vs 6.6 s), and Aer GPU is the fastest (3.7 s). The likely
+  reason: Aer fuses consecutive gates by default, so it makes fewer passes over memory. That's
+  exactly what the fusion pass in Phase 7 tests. Aer CPU (16 threads) is close to the
+  degraded GPU runs, which again points to the GPU's memory clock being the bottleneck here.

@@ -1,0 +1,222 @@
+{
+  "benchmark": "b3_efficiency_baseline",
+  "environment": {
+    "timestamp_utc": "2026-11-19T13:14:19+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "71e7ed3-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "[System is not in ready state]",
+        "current_mem_clock": "[System is not in ready state]",
+        "power_draw": "10.01 W",
+        "temperature_c": "72",
+        "clock_event_reasons": "[System is not in ready state]",
+        "pcie_gen": "1"
+      },
+      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "n": 24,
+  "dtype": "complex64",
+  "copy": {
+    "ms": 33.64147186279297,
+    "GBps": 7.979301770588882,
+    "timing": {
+      "median_ms": 100.9244155883789,
+      "min_ms": 100.81484985351562,
+      "max_ms": 101.11180877685547,
+      "repeats": 7,
+      "all_ms": [
+        101.11180877685547,
+        100.94898986816406,
+        100.81484985351562,
+        100.97869110107422,
+        100.91417694091797,
+        100.84761810302734,
+        100.9244155883789
+      ]
+    }
+  },
+  "roofline_ms_per_gate": 33.64147186279297,
+  "rows": [
+    {
+      "case": "h_high_target",
+      "gate": "h",
+      "ms_per_gate": 33.760938008626304,
+      "effective_GBps": 7.951066286470231,
+      "fraction_of_copy": 0.9964614091645556,
+      "timing": {
+        "median_ms": 101.2828140258789,
+        "min_ms": 101.13021087646484,
+        "max_ms": 101.3759994506836,
+        "repeats": 7,
+        "all_ms": [
+          101.24390411376953,
+          101.32787322998047,
+          101.3759994506836,
+          101.2828140258789,
+          101.19782257080078,
+          101.13021087646484,
+          101.28486633300781
+        ]
+      }
+    },
+    {
+      "case": "h_low_target",
+      "gate": "h",
+      "ms_per_gate": 33.65478515625,
+      "effective_GBps": 7.976145286731954,
+      "fraction_of_copy": 0.9996044160319187,
+      "timing": {
+        "median_ms": 100.96435546875,
+        "min_ms": 100.8005142211914,
+        "max_ms": 101.09645080566406,
+        "repeats": 7,
+        "all_ms": [
+          100.96435546875,
+          101.0862045288086,
+          100.9428482055664,
+          100.95410919189453,
+          101.07392120361328,
+          101.09645080566406,
+          100.8005142211914
+        ]
+      }
+    },
+    {
+      "case": "rz_high_target",
+      "gate": "rz",
+      "ms_per_gate": 33.76674143473307,
+      "effective_GBps": 7.949699751717308,
+      "fraction_of_copy": 0.996290149223246,
+      "timing": {
+        "median_ms": 101.30022430419922,
+        "min_ms": 101.19884490966797,
+        "max_ms": 101.47225952148438,
+        "repeats": 7,
+        "all_ms": [
+          101.4128646850586,
+          101.24800109863281,
+          101.30022430419922,
+          101.19884490966797,
+          101.47225952148438,
+          101.359619140625,
+          101.29920196533203
+        ]
+      }
+    },
+    {
+      "case": "x_high_target",
+      "gate": "x",
+      "ms_per_gate": 33.761962890625,
+      "effective_GBps": 7.950824922994598,
+      "fraction_of_copy": 0.9964311604682946,
+      "timing": {
+        "median_ms": 101.285888671875,
+        "min_ms": 101.2336654663086,
+        "max_ms": 101.37190246582031,
+        "repeats": 7,
+        "all_ms": [
+          101.37190246582031,
+          101.285888671875,
+          101.29920196533203,
+          101.30534362792969,
+          101.2336654663086,
+          101.27974700927734,
+          101.27462768554688
+        ]
+      }
+    },
+    {
+      "case": "cz",
+      "gate": "cz",
+      "ms_per_gate": 16.91921106974284,
+      "effective_GBps": 15.865719441259978,
+      "fraction_of_copy": 1.9883593699563853,
+      "timing": {
+        "median_ms": 50.757633209228516,
+        "min_ms": 50.57843017578125,
+        "max_ms": 50.790401458740234,
+        "repeats": 7,
+        "all_ms": [
+          50.790401458740234,
+          50.757633209228516,
+          50.762752532958984,
+          50.77299118041992,
+          50.57843017578125,
+          50.69004821777344,
+          50.722816467285156
+        ]
+      }
+    },
+    {
+      "case": "cx",
+      "gate": "cx",
+      "ms_per_gate": 16.899072011311848,
+      "effective_GBps": 15.88462702687553,
+      "fraction_of_copy": 1.9907289489194522,
+      "timing": {
+        "median_ms": 50.69721603393555,
+        "min_ms": 50.62451171875,
+        "max_ms": 51.08940887451172,
+        "repeats": 7,
+        "all_ms": [
+          50.69721603393555,
+          51.08940887451172,
+          50.718719482421875,
+          50.66035079956055,
+          50.62451171875,
+          50.722816467285156,
+          50.658302307128906
+        ]
+      }
+    },
+    {
+      "case": "swap",
+      "gate": "swap",
+      "ms_per_gate": 60.51635233561198,
+      "effective_GBps": 4.4357507622288415,
+      "fraction_of_copy": 0.555907131947145,
+      "timing": {
+        "median_ms": 181.54905700683594,
+        "min_ms": 181.2797393798828,
+        "max_ms": 183.39328002929688,
+        "repeats": 7,
+        "all_ms": [
+          181.2797393798828,
+          181.40672302246094,
+          181.7323455810547,
+          181.5941162109375,
+          181.2991943359375,
+          183.39328002929688,
+          181.54905700683594
+        ]
+      }
+    }
+  ]
+}
