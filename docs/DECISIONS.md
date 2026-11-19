@@ -83,3 +83,36 @@ algorithm uses it.
 **Continued fractions may return a divisor of r.** A measured value such as 128/256 = 1/2 gives
 r = 2 for a = 7, which fails the check a^r ≡ 1 (mod 15). The post-processing then tries 2r and 4r,
 which recovers r = 4. That's the standard fix when s and r share a factor.
+
+## Phase 5 decisions and results (VQE for H2)
+
+**Hamiltonians are generated offline and committed.** `scripts/gen_h2_hamiltonians.py` (PySCF 2.15.1 +
+OpenFermion 1.8.1) writes `data/h2_hamiltonians.json` for 45 bond lengths, 0.30–2.50 Å. Before writing,
+it checks that the 2-qubit reduced Hamiltonian's lowest eigenvalue equals the PySCF FCI energy within
+1e-8 at every point. Runtime code reads the JSON with NumPy only.
+
+**Exact reference = 2-electron sector.** The 4-qubit Jordan–Wigner Hamiltonian also describes 0, 1, 3 and
+4 electrons. The reference energy is the lowest eigenvalue among basis states with exactly two 1s, which
+is the sector the UCCSD ansatz stays in. A test checks it equals the FCI energy (1e-8) at all 45 points.
+
+**UCCSD generators are built numerically.** Fermion operators are written as Jordan–Wigner matrices
+(16×16), and each excitation T − T† is split into Pauli strings with c_P = Tr(P·G)/16. The double
+excitation becomes 8 Pauli strings and each single becomes 2. All strings inside one generator commute, so
+one Trotter step reproduces exp(θ·G) exactly (tested against `scipy.linalg.expm`).
+
+**exp(iφP) circuit.** Basis change (H for X, Rx(π/2) for Y), a CX ladder collecting the parity on the
+lowest active qubit, Rz(−2φ) there, then the undo. It's tested against `expm` on random states and Pauli strings.
+
+**Results** (stored in `bench/results/vqe_h2_*.json`, optimiser L-BFGS-B with finite differences,
+warm start from the previous bond length):
+
+| Run | Worst \|VQE − exact\| over 45 points | Minimum |
+|---|---|---|
+| 2-qubit reduced, NumPy | 3.0e-11 Ha | R = 0.75 Å, E = −1.137117 Ha |
+| 4-qubit UCCSD, NumPy (complex128) | 1.4e-10 Ha | R = 0.75 Å, E = −1.137117 Ha |
+| 4-qubit UCCSD, GPU (complex64) | 6.3e-5 Ha | R = 0.75 Å, E = −1.137115 Ha |
+
+All are well inside chemical accuracy (1.6e-3 Ha). The two single-excitation angles stay below
+4.5e-6 at every point (expected ~0 by symmetry, and now measured rather than assumed). On a 4-qubit state the GPU run
+was slower than NumPy (22.6 s vs 10.2 s wall time): each kernel launch costs more than the
+16-amplitude update it performs. The GPU only pays off for large states.

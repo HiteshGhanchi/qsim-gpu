@@ -58,10 +58,11 @@ uv venv --python 3.14 .venv-aergpu && uv pip install --python .venv-aergpu/bin/p
 uv venv --python 3.14 .venv-cuq && uv pip install --python .venv-cuq/bin/python cuquantum-python-cu12 "cupy-cuda12x[ctk]"
 ```
 
-Offline Hamiltonian generation only (see `scripts/gen_h2_hamiltonians.py`):
+Offline Hamiltonian generation only (see `scripts/gen_h2_hamiltonians.py`; used pyscf 2.15.1 and
+openfermion 1.8.1 on Python 3.14):
 
 ```bash
-uv venv --python 3.12 .venv-chem && uv pip install --python .venv-chem/bin/python pyscf openfermion
+uv venv --python 3.14 .venv-chem && uv pip install --python .venv-chem/bin/python pyscf openfermion
 ```
 
 ## Google Colab
