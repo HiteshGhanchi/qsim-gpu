@@ -1,0 +1,141 @@
+{
+  "benchmark": "tolerance_complex64_one_qubit",
+  "environment": {
+    "timestamp_utc": "2026-11-19T12:57:01+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "9896657-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "depth": 100,
+  "seeds": 5,
+  "one_qubit_only": true,
+  "rows": [
+    {
+      "n": 1,
+      "max_abs_amp_error": 5.546416891949285e-07,
+      "max_norm_error": 5.199939498989892e-07
+    },
+    {
+      "n": 2,
+      "max_abs_amp_error": 4.940454181429567e-07,
+      "max_norm_error": 5.493702172065795e-07
+    },
+    {
+      "n": 3,
+      "max_abs_amp_error": 2.1807379891684176e-07,
+      "max_norm_error": 3.1154985391523837e-07
+    },
+    {
+      "n": 4,
+      "max_abs_amp_error": 2.4265859822441706e-07,
+      "max_norm_error": 4.1641498349509476e-07
+    },
+    {
+      "n": 5,
+      "max_abs_amp_error": 2.0812970371989286e-07,
+      "max_norm_error": 3.41526574243467e-07
+    },
+    {
+      "n": 6,
+      "max_abs_amp_error": 2.813317868125948e-07,
+      "max_norm_error": 3.948376074980331e-07
+    },
+    {
+      "n": 7,
+      "max_abs_amp_error": 2.22263381875271e-07,
+      "max_norm_error": 4.981471897202994e-07
+    },
+    {
+      "n": 8,
+      "max_abs_amp_error": 2.135806015281192e-07,
+      "max_norm_error": 4.794138039887486e-07
+    },
+    {
+      "n": 9,
+      "max_abs_amp_error": 1.528867528844901e-07,
+      "max_norm_error": 3.67184060934278e-07
+    },
+    {
+      "n": 10,
+      "max_abs_amp_error": 1.4856125809327443e-07,
+      "max_norm_error": 3.946792551667855e-07
+    },
+    {
+      "n": 11,
+      "max_abs_amp_error": 1.1711612770330757e-07,
+      "max_norm_error": 3.7446956213660343e-07
+    },
+    {
+      "n": 12,
+      "max_abs_amp_error": 1.1084465413344678e-07,
+      "max_norm_error": 3.350145281189043e-07
+    },
+    {
+      "n": 13,
+      "max_abs_amp_error": 1.543919277830534e-07,
+      "max_norm_error": 4.987978289294759e-07
+    },
+    {
+      "n": 14,
+      "max_abs_amp_error": 8.48678981668529e-08,
+      "max_norm_error": 3.2015147755082296e-07
+    },
+    {
+      "n": 15,
+      "max_abs_amp_error": 8.118971640459858e-08,
+      "max_norm_error": 3.7577766565100035e-07
+    },
+    {
+      "n": 16,
+      "max_abs_amp_error": 7.663577195354065e-08,
+      "max_norm_error": 3.8985754813314344e-07
+    },
+    {
+      "n": 17,
+      "max_abs_amp_error": 1.053850129231764e-07,
+      "max_norm_error": 3.893147365596761e-07
+    },
+    {
+      "n": 18,
+      "max_abs_amp_error": 6.508074186885978e-08,
+      "max_norm_error": 2.9636790466192053e-07
+    },
+    {
+      "n": 19,
+      "max_abs_amp_error": 5.236001025944667e-08,
+      "max_norm_error": 3.0000759665416155e-07
+    },
+    {
+      "n": 20,
+      "max_abs_amp_error": 6.128011647337372e-08,
+      "max_norm_error": 3.8510124333868134e-07
+    }
+  ],
+  "overall_max_abs_amp_error": 5.546416891949285e-07,
+  "overall_max_norm_error": 5.493702172065795e-07
+}
