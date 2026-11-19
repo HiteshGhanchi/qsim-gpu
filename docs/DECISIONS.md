@@ -66,3 +66,20 @@ digits.
 
 **Norm uses the expectation kernel.** `amplitude_norm()` runs the Pauli kernel with empty masks
 (<psi|psi>), so it needs no full-size temporary array.
+
+## Phase 4 decisions
+
+**OQ19, Grover iteration count = floor.** `optimal_iterations()` evaluates both floor and round
+of (pi/4)·sqrt(2^n) and keeps the one with the higher theoretical success probability
+sin²((2k+1)θ). For n = 2..20 the two differ only at n = 2, 7, 8, 9, 11, 14, 19, and floor wins
+every time (for example n = 2: floor = 1 round gives 1.0, round = 2 rounds gives 0.25; n = 8:
+0.999947 vs 0.986186). The function still compares both rather than hard-coding floor.
+
+**Shor-15 multiplication uses a^4 = 1 (mod 15).** The controlled multiplication by a^(2^j) is
+applied as (2^j mod 4) repetitions of "multiply by a", since every valid a has a^4 ≡ 1 mod 15. A
+test checks every circuit against y → a^p·y mod 15 for all y = 1..14 and p = 1..4 before the
+algorithm uses it.
+
+**Continued fractions may return a divisor of r.** A measured value such as 128/256 = 1/2 gives
+r = 2 for a = 7, which fails the check a^r ≡ 1 (mod 15). The post-processing then tries 2r and 4r,
+which recovers r = 4. That's the standard fix when s and r share a factor.
