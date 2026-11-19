@@ -44,7 +44,9 @@ class CudaBackend:
 
     max_host_qubits = 26  # statevector()/probabilities() copy 2^n values to the host
 
-    def __init__(self, n_qubits: int, dtype: type | np.dtype[Any] = np.complex64) -> None:
+    def __init__(self, n_qubits: int, dtype: type | np.dtype[Any] = np.complex64,
+                 specialized: bool = True) -> None:
+        """specialized=False routes every gate through the general kernels (the baseline)."""
         import cupy as cp
 
         if not 1 <= n_qubits <= 34:
@@ -60,6 +62,11 @@ class CudaBackend:
         e = _module("expect.cu", self.dtype.name)
         self._k_apply_1q = g.get_function("apply_1q")
         self._k_apply_kq = g.get_function("apply_kq")
+        self._k_phase = g.get_function("apply_phase")
+        self._k_diag = g.get_function("apply_diag")
+        self._k_x = g.get_function("apply_x")
+        self._k_swap = g.get_function("apply_swap")
+        self.specialized = specialized
         self._k_chunk_sums = m.get_function("chunk_prob_sums")
         self._k_locate = m.get_function("locate_in_chunk")
         self._k_pauli = e.get_function("pauli_partial")
@@ -139,8 +146,47 @@ class CudaBackend:
                 np.int64(_mask(targets + controls)), np.int64(_mask(controls)), mat)
         self._k_apply_kq(self._grid(n_work), (BLOCK,), args)
 
+    def _apply_specialized(self, gate: Gate) -> bool:
+        """Use a family-specific kernel if one fits. Returns False to fall back."""
+        ctrls = gate.controls
+        if gate.name == "swap":
+            a, b = gate.targets
+            n_work = 1 << (self.n_qubits - 2 - len(ctrls))
+            self._k_swap(self._grid(n_work), (BLOCK,),
+                         (self._psi, np.int64(n_work), np.int32(a), np.int32(b),
+                          np.int64(_mask((a, b, *ctrls))), np.int64(_mask(ctrls))))
+            return True
+        if len(gate.targets) != 1 or gate.name == "unitary":
+            return False
+        (t,) = gate.targets
+        if gate.kind == "permutation":  # x, cx, ccx, multi-controlled x
+            n_work = 1 << (self.n_qubits - 1 - len(ctrls))
+            self._k_x(self._grid(n_work), (BLOCK,),
+                      (self._psi, np.int64(n_work), np.int32(t),
+                       np.int64(_mask((t, *ctrls))), np.int64(_mask(ctrls))))
+            return True
+        if gate.kind == "diagonal":
+            m = gate.target_matrix()
+            d0, d1 = complex(m[0, 0]), complex(m[1, 1])
+            if d0 == 1:  # diag(1, phase): touch only amplitudes with target and controls = 1
+                fixed = _mask((t, *ctrls))
+                n_work = 1 << (self.n_qubits - 1 - len(ctrls))
+                self._k_phase(self._grid(n_work), (BLOCK,),
+                              (self._psi, np.int64(n_work), np.int64(fixed), np.int64(fixed),
+                               self._scalar(d1)))
+            else:  # e.g. rz: both entries change
+                n_work = 1 << (self.n_qubits - len(ctrls))
+                self._k_diag(self._grid(n_work), (BLOCK,),
+                             (self._psi, np.int64(n_work), np.int32(t),
+                              np.int64(_mask(ctrls)), np.int64(_mask(ctrls)),
+                              self._scalar(d0), self._scalar(d1)))
+            return True
+        return False
+
     def apply(self, gate: Gate) -> None:
         self._check_qubits(gate)
+        if self.specialized and self._apply_specialized(gate):
+            return
         if len(gate.targets) == 1:
             self.apply_1q_matrix(gate.target_matrix(), gate.targets[0], gate.controls)
         else:

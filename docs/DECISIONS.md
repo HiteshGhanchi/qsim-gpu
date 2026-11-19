@@ -154,3 +154,30 @@ What the baseline showed, with that caveat:
   reason: Aer fuses consecutive gates by default, so it makes fewer passes over memory. That's
   exactly what the fusion pass in Phase 7 tests. Aer CPU (16 threads) is close to the
   degraded GPU runs, which again points to the GPU's memory clock being the bottleneck here.
+
+## Phase 7.1: specialised kernels (B4)
+
+Four new kernels: `apply_phase` (diag(1, φ) gates: Z, S, T, P, CZ, CP, multi-controlled Z),
+`apply_diag` (Rz), `apply_x` (X, CX, CCX, multi-controlled X) and `apply_swap`. `CudaBackend(...,
+specialized=False)` keeps the old general path for comparison. Both paths are tested against
+explicit matrices for every gate and against each other on random circuits.
+
+Measured at n = 24, complex64, general vs specialised in the same process (`b4_specialised.json`;
+same GPU clock caveat as Phase 6, but both paths ran under identical conditions):
+
+| Gate | General | Specialised | Speedup | Why |
+|---|---|---|---|---|
+| H | 33.7 ms | 33.8 ms | 1.00× | no specialised kernel (general family) |
+| X | 33.8 ms | 33.7 ms | 1.00× | fewer multiplications, same bytes: memory-bound, so no gain |
+| Rz | 33.8 ms | 33.3 ms | 1.01× | one read + write per amplitude either way |
+| Z, T | 33.7 ms | 16.6 ms | 2.03× | amplitudes with target bit 0 are never read |
+| CX | 16.9 ms | 16.8 ms | 1.01× | the general kernel already skipped control = 0 |
+| CZ, CP | 16.9 ms | 8.3 ms | 2.03× | only the \|11⟩ quarter is touched |
+| CCX | 8.5 ms | 8.5 ms | 1.00× | same bytes |
+| SWAP | 60.6 ms | 16.9 ms | 3.57× | only \|01⟩ and \|10⟩ move, and no 4×4 matrix in local memory |
+| Z with 23 controls | 0.012 ms | 0.009 ms | 1.33× | a single amplitude; launch overhead dominates |
+
+**What this shows:** removing arithmetic did nothing (X, CX, Rz). Every speedup came from
+moving fewer bytes. That's the clearest evidence that the simulator is memory-bound. The
+copy kernel took 33.6 ms on the same state, so specialised Z/T/CZ/CP and SWAP now run
+*faster than a full copy*: they don't need to touch the whole state.

@@ -14,10 +14,10 @@ pytestmark = pytest.mark.gpu
 DTYPES = [(np.complex64, ATOL_COMPLEX64), (np.complex128, ATOL_COMPLEX128)]
 
 
-def cuda(n: int, dtype: type = np.complex64):  # type: ignore[no-untyped-def]
+def cuda(n: int, dtype: type = np.complex64, specialized: bool = True):  # type: ignore[no-untyped-def]
     from qsim.backends.cuda_backend import CudaBackend
 
-    return CudaBackend(n, dtype)
+    return CudaBackend(n, dtype, specialized=specialized)
 
 
 def oracle(c: Circuit) -> np.ndarray:
@@ -202,3 +202,36 @@ def test_host_copy_refused_above_limit() -> None:
     b.max_host_qubits = 3
     with pytest.raises(ValueError):
         b.statevector()
+
+
+# --- phase 7: specialised kernels must agree with the general ones -------------------
+
+@pytest.mark.parametrize("specialized", [False, True])
+@pytest.mark.parametrize("n", [1, 2, 3, 6])
+def test_every_gate_matches_explicit_matrix_in_both_modes(n: int, specialized: bool) -> None:
+    rng = np.random.default_rng(99 + n)
+    names = ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "p"]
+    for trial in range(40):
+        qs = [int(q) for q in rng.permutation(n)]
+        name = str(rng.choice(names + (["swap"] if n >= 2 else [])))
+        n_targets = 2 if name == "swap" else 1
+        n_ctrl = int(rng.integers(0, n - n_targets + 1))
+        params = (float(rng.uniform(-3, 3)),) if name in ("rx", "ry", "rz", "p") else ()
+        g = Gate(name, tuple(qs[:n_targets]), tuple(qs[n_targets : n_targets + n_ctrl]), params)
+        psi = random_state(n, 900 + trial)
+        b = cuda(n, np.complex128, specialized)
+        b.set_state(psi)
+        b.apply(g)
+        np.testing.assert_allclose(b.statevector(), full_matrix(g, n) @ psi, atol=1e-12,
+                                   err_msg=str(g))
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_specialized_and_general_paths_agree(seed: int) -> None:
+    n = 4 + seed
+    c = random_circuit(n, 150, 4000 + seed)
+    a = cuda(n, np.complex128, specialized=True)
+    b = cuda(n, np.complex128, specialized=False)
+    a.run(c)
+    b.run(c)
+    np.testing.assert_allclose(a.statevector(), b.statevector(), atol=1e-12)
