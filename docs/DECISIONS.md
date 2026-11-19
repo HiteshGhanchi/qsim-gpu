@@ -257,3 +257,11 @@ norm and that 1000 samples only ever give 00…0 or 11…1, and stop at the firs
 
 The 29–30 qubit runs need a 16 GB GPU (T4 on Colab). The notebook includes that run, but it has
 not been run yet.
+
+## Documentation added at the owner's request
+
+- `docs/CODEBASE_GUIDE.md`: a file-by-file guide covering what each part does, why it's built
+  that way, the problems hit while building it, and likely interview questions.
+- `lessons/lesson1_cuda.py` and sections 14–15 of `lessons/teaching.md`: the GPU side (CuPy
+  arrays, a raw CUDA kernel, timing) and the commands used day to day.
+- README without images for now (OQ15); results are described in text and tables.

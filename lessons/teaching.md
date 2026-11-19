@@ -2,7 +2,8 @@
 
 Personal learning notes for the qsim-gpu project. Written for someone who knows
 classical computing (bits, logic gates, building an adder) and is new to quantum.
-Pairs with [`lesson0.py`](lesson0.py): run it while reading.
+Pairs with [`lesson0.py`](lesson0.py) (plain Python) and [`lesson1_cuda.py`](lesson1_cuda.py)
+(the GPU version): run them while reading.
 
 ```bash
 python3 lessons/lesson0.py
@@ -22,6 +23,8 @@ python3 lessons/lesson0.py
 11. [The three gate families (why the GPU cares)](#11-the-three-gate-families-why-the-gpu-cares)
 12. [Glossary](#12-glossary)
 13. [Check yourself](#13-check-yourself)
+14. [The GPU side: CUDA and CuPy](#14-the-gpu-side-cuda-and-cupy)
+15. [Commands you will use](#15-commands-you-will-use)
 
 ---
 
@@ -559,3 +562,92 @@ skip the pairing logic entirely, but it still has to read and write the whole li
 A reversible AND: with the target starting at 0 it ends as `c1 AND c2`, and the
 inputs are kept, so nothing is lost.
 </details>
+
+
+---
+
+## 14. The GPU side: CUDA and CuPy
+
+Run [`lesson1_cuda.py`](lesson1_cuda.py) alongside this section:
+```bash
+.venv/bin/python lessons/lesson1_cuda.py
+```
+
+### Two kinds of memory
+Your computer has normal RAM (used by the CPU) and the GPU has its **own** memory. Data must be
+copied across, which is slow compared with work done inside either one.
+
+| Code | Where the data lives |
+|---|---|
+| `np.array(...)` | CPU RAM (NumPy) |
+| `cp.asarray(host)` | copies CPU → GPU (CuPy) |
+| `device.get()` | copies GPU → CPU |
+
+CuPy arrays look and behave like NumPy arrays, but their numbers live on the GPU and every
+operation on them runs there. The simulator keeps the whole state on the GPU and copies back only
+when you ask for it (`statevector()`, `probabilities()`), which is why those refuse above 26 qubits.
+
+### What a kernel is
+A **kernel** is one small C function that the GPU runs on thousands of threads at once. Each
+thread gets its own number and does a tiny piece of the work. The ones in this project are
+literally the `apply_on` loop from `lesson0.py`, with the `for` loop removed: instead of one
+loop doing every pair, every pair gets its own thread.
+
+```c
+long long t   = blockIdx.x * blockDim.x + threadIdx.x;  // "which thread am I?"
+long long low = t & ((1LL << k) - 1);
+long long i0  = ((t >> k) << (k + 1)) | low;           // my pair's first index
+long long i1  = i0 | (1LL << k);                        // ...and its partner
+```
+
+- Threads come in **blocks** (here 256 threads each), and blocks form a **grid**.
+  `kernel((blocks,), (threads,), args)` launches it.
+- `long long` (64-bit) indices: at 30 qubits the numbers get bigger than a 32-bit `int` can hold.
+- No two threads touch the same amplitude, so they never wait for each other.
+
+### How the project compiles kernels
+The kernels are plain text files (`qsim/kernels/*.cu`). When the simulator starts, CuPy hands
+the text to **NVRTC** (NVIDIA's run-time compiler), which turns it into GPU machine code. There's no
+separate build step. That's why `nvcc` (the usual CUDA compiler) isn't needed.
+
+### Timing GPU work
+GPU calls return immediately; the GPU keeps working in the background. To time it you need GPU
+**events** (`cp.cuda.Event()`) and a `synchronize()` to wait for the GPU to finish, as in Part 4
+of the lesson. Timing with Python's clock alone would measure only how long it took to *ask*.
+
+### Why bigger is better for a GPU
+Launching a kernel has a fixed cost of a few microseconds. With 4 amplitudes that cost is
+everything, and NumPy is faster. With 16 million amplitudes, the launch cost disappears and the
+GPU's memory speed decides the time. The project measured both (see `docs/DECISIONS.md`): the
+4-qubit VQE was slower on the GPU than with NumPy, while big states are where the GPU wins.
+
+---
+
+## 15. Commands you will use
+
+```bash
+# One-time setup (Python 3.14 via uv, a project-local environment like node_modules)
+uv venv --python 3.14 .venv
+uv pip install --python .venv/bin/python -e ".[dev,compare]" "cupy-cuda12x[ctk]"
+
+# Is the GPU visible? Which driver and memory?
+nvidia-smi
+
+# Tests
+.venv/bin/pytest -m "not gpu"     # CPU tests only
+.venv/bin/pytest -m gpu           # GPU tests only
+.venv/bin/pytest                  # everything
+
+# Code quality (like eslint + tsc)
+.venv/bin/ruff check .
+.venv/bin/mypy
+
+# Benchmarks (each writes a JSON file to bench/results/)
+.venv/bin/python -m bench.run_env          # record the machine
+.venv/bin/python -m bench.run_b2_scaling   # time vs number of qubits
+.venv/bin/python -m bench.run_all          # everything, in order
+
+# Lessons
+python3 lessons/lesson0.py                 # plain Python, no GPU needed
+.venv/bin/python lessons/lesson1_cuda.py   # GPU version
+```
