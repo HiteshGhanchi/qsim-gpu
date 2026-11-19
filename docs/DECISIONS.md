@@ -220,3 +220,40 @@ degraded state described in Phase 6, so the best m should be re-checked on a hea
 on the T4.
 
 Fusion cost on the host: 4–130 ms per circuit (m = 2..5), paid once per circuit, not per run.
+
+## Phase 7.3: precision study (B6)
+
+Measured in `b6_precision.json`, random circuits of depth 100 against the complex128 NumPy oracle,
+3 seeds per n:
+
+| n | complex64 max error | complex128 max error |
+|---|---|---|
+| 10 | 1.1e-7 | 1.7e-16 |
+| 14 | 5.3e-8 | 8.8e-17 |
+| 18 | 5.7e-8 | 1.1e-16 |
+| 20 | 6.2e-8 | 7.2e-17 |
+
+Time for one H gate (same GPU state caveat as Phase 6):
+complex128 / complex64 = 2.00–2.01 at n = 20, 22, 24, 26. That's exactly the ratio of bytes per
+amplitude (16 vs 8). Double precision costs no more than its extra memory traffic. Arithmetic,
+even on a GPU with slow FP64 units, is not the bottleneck.
+
+Memory: one qubit fewer in complex128. On the 4 GB laptop, B8 (below) confirms 28 qubits in
+complex64 and 27 in complex128.
+
+**Decision: complex64 stays the default.** Its error (~1e-7) is about 10,000× below what any
+test or algorithm here needs. VQE in complex64 stayed within 6.3e-5 Ha of exact, against a
+1.6e-3 Ha requirement. And it allows one more qubit and halves the time per gate.
+
+## Phase 8: scale limit (B8)
+
+`b8_scale_complex64.json` / `b8_scale_complex128.json`: build a GHZ state at growing n, check the
+norm and that 1000 samples only ever give 00…0 or 11…1, and stop at the first out-of-memory error.
+
+| dtype | largest n that ran correctly | first failure |
+|---|---|---|
+| complex64 | 28 (2 GiB state) | 29 (4 GiB) out of memory |
+| complex128 | 27 (2 GiB state) | 28 (4 GiB) out of memory |
+
+The 29–30 qubit runs need a 16 GB GPU (T4 on Colab). The notebook includes that run, but it has
+not been run yet.

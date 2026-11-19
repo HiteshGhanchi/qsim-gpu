@@ -1,0 +1,98 @@
+{
+  "benchmark": "b8_scale_complex128",
+  "environment": {
+    "timestamp_utc": "2026-11-19T13:33:05+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "f22e8b5",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "[System is not in ready state]",
+        "current_mem_clock": "[System is not in ready state]",
+        "power_draw": "10.01 W",
+        "temperature_c": "71",
+        "clock_event_reasons": "[System is not in ready state]",
+        "pcie_gen": "1"
+      },
+      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "dtype": "complex128",
+  "rows": [
+    {
+      "n": 24,
+      "state_bytes": 268435456,
+      "ok": true,
+      "norm": 0.9999999999999999,
+      "ghz_seconds": 0.9885935370002699,
+      "sampled_patterns": [
+        0,
+        16777215
+      ]
+    },
+    {
+      "n": 25,
+      "state_bytes": 536870912,
+      "ok": true,
+      "norm": 0.9999999999999999,
+      "ghz_seconds": 1.9662691770026868,
+      "sampled_patterns": [
+        0,
+        33554431
+      ]
+    },
+    {
+      "n": 26,
+      "state_bytes": 1073741824,
+      "ok": true,
+      "norm": 0.9999999999999999,
+      "ghz_seconds": 4.063707550001709,
+      "sampled_patterns": [
+        0,
+        67108863
+      ]
+    },
+    {
+      "n": 27,
+      "state_bytes": 2147483648,
+      "ok": true,
+      "norm": 0.9999999999999999,
+      "ghz_seconds": 8.367206932001864,
+      "sampled_patterns": [
+        0,
+        134217727
+      ]
+    },
+    {
+      "n": 28,
+      "state_bytes": 4294967296,
+      "ok": false,
+      "oom": "Out of memory allocating 4,294,967,296 bytes (allocated so far: 0 bytes)."
+    }
+  ],
+  "max_qubits": 27
+}
