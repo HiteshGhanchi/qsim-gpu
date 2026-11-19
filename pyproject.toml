@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qsim-gpu"
+version = "0.1.0"
+description = "A from-scratch GPU statevector quantum circuit simulator, validated against NumPy and Qiskit Aer."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+gpu = ["cupy-cuda12x"]
+dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.6", "mypy>=1.10"]
+compare = ["qiskit>=1.0", "qiskit-aer>=0.15"]
+chem = ["pyscf>=2.6", "openfermion>=1.6"]
+
+[tool.setuptools.packages.find]
+include = ["qsim*"]
+
+[tool.setuptools.package-data]
+"qsim.kernels" = ["*.cu", "*.cuh"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: needs an NVIDIA GPU with CuPy (deselect with -m 'not gpu')",
+    "slow: takes more than a few seconds",
+]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "NPY"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["qsim"]
+
+[[tool.mypy.overrides]]
+module = ["cupy.*", "qiskit.*", "qiskit_aer.*", "scipy.*", "pyscf.*", "openfermion.*"]
+ignore_missing_imports = true
