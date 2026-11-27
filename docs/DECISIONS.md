@@ -265,3 +265,40 @@ not been run yet.
 - `lessons/lesson1_cuda.py` and sections 14–15 of `lessons/teaching.md`: the GPU side (CuPy
   arrays, a raw CUDA kernel, timing) and the commands used day to day.
 - README without images for now (OQ15); results are described in text and tables.
+
+## Re-measured on a healthy GPU (2026-11-27): supersedes the timing figures above
+
+After a reboot, the GPU driver reported normal clocks again (memory 5870 MHz). Its clock-event
+flags still showed software power and thermal capping during the runs; that's recorded in every
+JSON. Every benchmark was re-run from a clean commit and the files in `bench/results/` were
+replaced. The Phase 6–8 sections above describe the earlier runs and are kept for the record.
+**Where their numbers disagree with this section, this section is correct.** Only
+`b5_fusion_v1_untemplated.json` and `tolerance_complex64_one_qubit.json` remain from before.
+
+| Benchmark | Healthy-GPU result | Change from the degraded runs |
+|---|---|---|
+| B0 copy bandwidth | 168 GB/s (buffers ≥ 64 MiB) | was 1.5–9 GB/s |
+| B1 target qubit (n = 26) | 6.39–6.71 ms for every target, no low-target penalty | **OQ10 resolved: no stride effect** (the earlier 5× was an artefact of the faulty clocks) |
+| B2 scaling | flat ~0.012 ms up to 17 qubits; ×1.83 at 19, ×2.00 per qubit from 25 | same shape |
+| B3 efficiency | general 1-qubit kernels 99.3–99.8% of copy | same |
+| B4 specialised kernels | Z/T/CZ/CP 1.99×, SWAP 2.01×, X/CX/CCX/Rz 1.00× | SWAP was 3.57×: the general 4×4 path is no longer penalised, so SWAP's gain is just its halved bytes |
+| B5 fusion (n = 22) | best width 2: QFT 1.84×, random 1.57× vs the general baseline; width 3 slower for QFT (0.88×); widths 4–5 much slower | was "m = 3, 2.08×" |
+| B6 precision | complex128/complex64 time = 2.49–2.84 | **was 2.00–2.01.** With real bandwidth, consumer FP64 throughput shows, so complex128 isn't purely memory-bound |
+| B7 comparison | see below | method changed |
+| B8 capacity | 28 qubits complex64, 27 complex128 | same |
+| VQE on GPU | max error 3.3e-5 Ha | was 6.3e-5 Ha (different run; both well inside 1.6e-3) |
+
+**OQ9 revised: default fusion width = 2** (`fuse()` default changed from 3 to 2).
+
+**B7 method fixed.** An audit found two biases in the first comparison, both favouring qsim:
+1. Aer was asked for the full statevector, which it copies to Python (about 16% of Aer GPU time at
+   24 qubits), while qsim returned nothing.
+2. Aer's qubit truncation simulated only 21 of the 24 qubits of the random circuit.
+
+Now every engine starts from |0…0⟩ and returns the same ⟨Z⟩ on qubit 0 (all engines agree within
+2.2e-7), truncation is off, Aer runs with and without fusion, qsim with and without fusion (the
+fusion pass inside the timed region), and every point is the median of 7 runs. Result at 24 qubits:
+QFT 187 ms (qsim) vs 319 (cuStateVec, general per-gate API) vs 641 (best Aer GPU) vs 2307 (best Aer CPU).
+Random circuit: 92 vs 125 vs 484 vs 913. From 18 qubits up, qsim was 1.2–1.7× faster than
+cuStateVec used this way. Below 14 qubits cuStateVec was 1.7–2× faster. Aer CPU timings were noisy
+on this laptop (one point's slowest run took 30× its fastest), so they're rough.

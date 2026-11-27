@@ -246,18 +246,24 @@ exactly. One trap: Rz and P differ only by a global phase *uncontrolled*, but on
 difference becomes a relative phase that changes results. There's a test for exactly that.
 
 ### 3.8 The optimisation story (one measured step at a time)
-1. **Baseline:** general kernels; the H gate already ran at ~100% of copy speed.
+1. **Baseline:** general kernels; the H gate already ran at 99.5–99.8% of copy speed
+   (168 GB/s copy on the RTX 3050 Laptop).
 2. **Specialised kernels:** removing multiplications (X, CX, Rz) gained nothing. Reading fewer
-   bytes (phase gates touch half the state, CZ/CP a quarter, SWAP half) gained 2.03–3.57×.
+   bytes (phase gates touch half the state, CZ/CP a quarter, SWAP half) gained 1.99–2.01×.
    That's the clearest proof the kernels are memory-bound.
 3. **Fusion, first try:** fewer passes but slower. The kernel's per-thread arrays were sized for the
    biggest case and spilled out of registers into slow local memory, and fused blocks lose the
    savings of specialised kernels.
 4. **Fusion, fixed:** one compiled kernel per matrix size (C++ template, unrolled, matrix in shared
-   memory). Width 3 then ran a random circuit 2.08× faster than baseline. Widths 4–5 are still
-   slower: too much arithmetic per byte and too many registers.
-5. **Precision:** complex128 costs exactly 2.0× per gate, the byte ratio, so it's still
-   memory-bound, and one qubit less fits.
+   memory). Width 2 then ran the QFT 1.84× and a random circuit 1.57× faster than the
+   general-kernel baseline. Widths 4–5 are still slower: too much arithmetic per byte and too
+   many registers.
+5. **Precision:** complex128 costs 2.5–2.8× per gate, more than the 2× byte ratio, because this
+   consumer GPU's double-precision units are slow. And one qubit less fits.
+6. **Fair comparison:** with every engine returning the same number and simulating the full
+   state, qsim ran 1.2–1.7× faster than cuStateVec's general per-gate API from 18 qubits up,
+   and 3.4–5.3× faster than Aer GPU at 24 qubits. Below 14 qubits cuStateVec was faster
+   (qsim pays more Python overhead per gate).
 
 ### 3.9 VQE in one paragraph
 A circuit with adjustable angles prepares a trial state, the simulator returns its exact energy,
@@ -281,7 +287,8 @@ one Rz and the undo. The singles stay ~0 by symmetry, which was measured rather 
 | Comb-QFT test failed for r = 2 | test bug: a comb starting at 3 with spacing 2 isn't periodic from index 1 | start the comb at `3 % r` |
 | Continued fractions gave r = 2 for a = 7 | measured 128/256 = 1/2 shares a factor with the true period | if a^r ≢ 1, try 2r and 4r |
 | The 4-qubit Hamiltonian's lowest eigenvalue isn't the H₂ answer in general | Jordan–Wigner covers every electron count | diagonalise only the 2-electron sector; test it equals FCI |
-| Benchmarks showed ~8 GB/s on a GPU rated much higher | the laptop driver reported "System is not in ready state" (faulty clock state) | record live clock state in every JSON, flag such runs, compare only within one run, re-run later |
+| Benchmarks showed ~8 GB/s on a GPU rated much higher | the laptop driver reported "System is not in ready state" (faulty clock state); a reboot fixed it | record live clock state in every JSON, flag such runs, compare only within one run, re-run later |
+| The first comparison flattered qsim | Aer returned the full statevector while qsim returned nothing, and Aer's qubit truncation simulated only 21 of 24 qubits | every engine returns the same ⟨Z0⟩ value; truncation off; 7 repeats; engines checked to agree within 2.2e-7 |
 | Small buffers showed 100+ GB/s "bandwidth" | they fit in the 2 MB L2 cache | define achievable bandwidth on buffers ≥ 64 MiB only |
 | Fusion made circuits slower | register spills in a one-size-fits-all kernel | one templated kernel per matrix size |
 | The GPU ran 4-qubit VQE slower than NumPy | each kernel launch costs more than updating 16 amplitudes | expected: a GPU only pays off for large states |
@@ -310,8 +317,8 @@ to a memory-bound kernel. Compiling one kernel per matrix size fixed it.
 basis is classically solvable, which is why it's the validation case.
 
 **Why complex64?** Its error (~1e-7) is far below what the algorithms need, and it halves memory
-traffic and adds one qubit of capacity. complex128 is available and measured at exactly 2× the cost.
+traffic and adds one qubit of capacity. complex128 is available and measured at 2.5–2.8× the cost.
 
-**What would you do next?** Re-run the benchmarks on a healthy GPU and a T4. Make fusion
+**What would you do next?** Run the benchmarks on a 16 GB T4 (29–30 qubits). Make fusion
 smarter (keep diagonal runs diagonal, allow reordering gates on disjoint qubits). Add shared-memory
 tiling for low qubits. Implement general modular exponentiation for Shor.

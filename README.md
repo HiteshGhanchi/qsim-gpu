@@ -52,55 +52,75 @@ is in understanding why classical simulation is expensive, and in making it fast
   lengths.
 - **Measured tolerance.** The single-precision tolerance (1e-5) came from a measurement. The
   worst observed error over random depth-100 circuits up to 20 qubits was 5.5e-7.
+- **Engines agree.** In the simulator comparison, qsim, Qiskit Aer and cuStateVec return the
+  same ⟨Z⟩ value within 2.2e-7 on every circuit.
 
-## Results so far
+## Results
 
-All numbers come from JSON files in `bench/results/`.
+Every number below comes from a JSON file in `bench/results/`, which also records the GPU,
+driver, CUDA and library versions, the live GPU clocks and the git commit.
 
-> **Important caveat.** The benchmarks were run on a 4 GB RTX 3050 Laptop GPU whose driver was
-> in a faulty clock state during the session ("System is not in ready state"; DRAM bandwidth
-> measured at only ~8 GB/s). Absolute times are therefore far slower than this GPU can do and
-> are **not** quoted as performance figures. Ratios measured inside one run (same GPU state for
-> both sides) are meaningful and are what's reported below. A clean re-run (`python -m bench.run_all`)
-> after a reboot, and on a Colab T4, is still to do.
+**Hardware:** NVIDIA RTX 3050 Laptop GPU (4 GB, Ampere), driver 535, CUDA runtime 12.9,
+complex64 unless stated. It's a laptop part: during the runs the driver reported software power
+and thermal capping (recorded in each JSON), so expect a few percent of variation between runs.
 
-**It is memory-bound** (B2, B3). From 18 qubits up, each extra qubit doubles the time per
-gate. Below that the state fits in the 2 MB L2 cache and launch overhead dominates. A general
-single-qubit gate runs at 99.6–100% of the speed of a plain copy of the same state.
+**Memory bandwidth is the limit** (B0–B3). A plain copy of the state reaches 168 GB/s. One H
+gate on a 26-qubit state takes 6.4 ms, which is 99.5–99.8% of the copy speed for the general
+single-qubit kernel, so there is essentially nothing left to gain on that gate. From 19 qubits
+on, each extra qubit roughly doubles the time per gate (×1.83 at 19, ×2.00 from 25 on). Below 18 qubits the state fits in the 2 MB L2
+cache and each gate costs a flat ~0.012 ms, which is mostly kernel-launch overhead. The target
+qubit makes no systematic difference (6.39–6.71 ms across all 26 targets).
 
-**Moving fewer bytes is what helps** (B4, 24 qubits). The specialised kernels:
+**Moving fewer bytes is what helps** (B4, 24 qubits, both paths timed in the same run):
 
 | Gate | Speedup over the general kernel | Reason |
 |---|---|---|
-| Z, T | 2.03× | only amplitudes with the target bit set are read |
-| CZ, CP | 2.03× | only the \|11⟩ quarter is touched |
-| SWAP | 3.57× | only \|01⟩ and \|10⟩ move |
-| X, CX, Rz | 1.00–1.01× | fewer multiplications but the same bytes: no gain |
+| Z, T | 1.99× | only amplitudes with the target bit set are read |
+| CZ, CP | 1.99× | only the \|11⟩ quarter is touched |
+| SWAP | 2.01× | only \|01⟩ and \|10⟩ move |
+| X, CX, CCX, Rz | 1.00× | fewer multiplications, same bytes: no gain |
 
-**Gate fusion** (B5, 22 qubits). Merging gates on up to 3 qubits cut a depth-100 random
-circuit from 100 passes to 55 and ran it 2.08× faster than the baseline. The first version of
-fusion was *slower* despite fewer passes. Its kernel kept per-thread arrays too large for
-registers, which was fixed by compiling one kernel per matrix size. Fusing 4–5 qubits is slower
-on this GPU, so the default width is 3. For the QFT, width 2 is best, because its many controlled-phase
-gates are already cheap with the specialised kernel.
+**Gate fusion** (B5, 22 qubits). Merging consecutive gates on up to 2 qubits gave the best
+results: the QFT ran 1.84× faster than the general-kernel baseline (37 ms vs 69 ms) and a depth-100 random
+circuit 1.57× faster (21 ms vs 32 ms). Wider fusion cuts more passes but is slower on this GPU:
+at width 4–5 a 16×16 or 32×32 complex matrix per amplitude group is no longer memory-bound.
+The first fusion kernel was slower than no fusion at all, because its per-thread arrays didn't
+fit in registers. Compiling one kernel per matrix size fixed it.
 
-**Precision** (B6). complex128 takes exactly 2.0× as long as complex64 per gate, which is the
-ratio of their sizes, and costs one qubit of capacity. complex64's error stays around 1e-7, so
-it's the default.
+**Precision** (B6). complex128 costs one qubit of capacity and takes 2.5–2.8× as long per gate
+(not 2×). The extra time beyond the 2× byte ratio comes from this consumer GPU's slow
+double-precision arithmetic. complex64's error against the double-precision reference stays
+below 1.2e-7, so it's the default.
 
-**Capacity** (B8). On the 4 GB GPU: 28 qubits in complex64 and 27 in complex128, each verified by
-norm and sampling. 29 qubits (4 GB) runs out of memory.
+**Capacity** (B8). On the 4 GB GPU: 28 qubits in complex64 and 27 in complex128, each checked by
+norm and by sampling a GHZ state. 29 qubits (a 4 GB state) runs out of memory.
 
 **VQE for H₂.** Across 0.30–2.50 Å the VQE energy stays within 1.4e-10 Hartree of exact
-diagonalisation on the NumPy backend, and within 6.3e-5 Hartree on the GPU in single precision.
+diagonalisation on the NumPy backend, and within 3.3e-5 Hartree on the GPU in single precision.
 Chemical accuracy is 1.6e-3. The minimum is at 0.75 Å, −1.137117 Hartree.
 
-**Compared with other simulators** (B7, same circuits, same degraded GPU). Up to 14 qubits, qsim and NVIDIA
-cuStateVec finish a circuit in about 1 ms, and Qiskit Aer takes 3–13 ms (setup cost per run).
-From 18 qubits up, cuStateVec is 5–14% faster than qsim on these unfused circuits (that qsim run
-used the general kernels, before the specialised ones were added).
-Aer GPU is the fastest at 24 qubits, most likely because it fuses gates by default. These
-comparisons need repeating on a healthy GPU before any claim is made either way.
+**Compared with other simulators** (B7, `bench/results/b7_compare_*.json`). The same circuits in single
+precision on every engine. Each run starts from |0…0⟩ and returns the same single number (⟨Z⟩ on qubit 0),
+which all engines agree on within 2.2e-7. Aer's qubit truncation is off, so every engine simulates
+the full state. Median of 7 runs. Times in ms:
+
+| Circuit | Qubits | Aer CPU (16 threads)¹ | Aer GPU² | cuStateVec³ | qsim | qsim + fusion |
+|---|---|---|---|---|---|---|
+| QFT | 20 | 50.3 | 38.7 | 15.1 | 9.4 | 13.4 |
+| QFT | 24 | 2307 | 641 | 319 | 187 | 180 |
+| Random, depth 100 | 20 | 55.2 | 30.5 | 8.5 | 6.8 | 10.9 |
+| Random, depth 100 | 24 | 913 | 484 | 125 | 92 | 81 |
+
+¹ Faster of Aer CPU with and without its fusion. Aer CPU timings were noisy on this laptop (in
+one case the slowest of 7 runs took 30× the fastest), so read them as rough.
+² Faster of Aer GPU with and without fusion.
+³ cuStateVec driven gate by gate through its general `apply_matrix` call, with no fusion and none of
+its specialised routines. This is a like-for-like kernel comparison, not cuStateVec's best possible use.
+
+From 18 qubits up, qsim was 1.2–1.7× faster than this cuStateVec usage and 3.4–5.3× faster than
+Aer GPU at 24 qubits. Up to 14 qubits, cuStateVec was 1.7–2× faster than qsim (0.47 vs 0.93 ms
+for a 10-qubit QFT), since qsim pays more Python overhead per gate. The comparison covers one
+laptop GPU and two circuit families. It isn't a general ranking of these simulators.
 
 ## Run it
 
@@ -137,15 +157,17 @@ print(sim.sample(1000, seed=1))   # only 0 (|00>) and 3 (|11>)
 
 ## Limitations
 
-- Not faster than Qiskit Aer or cuStateVec, and not trying to be. The aim was to understand and
-  measure the gap.
+- The comparison above covers one laptop GPU, two circuit families and cuStateVec's general
+  per-gate API only. It doesn't show that qsim beats these libraries in general. Aer and
+  cuStateVec do much more (noise, shots, batching, multi-GPU, many specialised routines).
 - Shor's multiplication circuits are hard-coded for N = 15. It demonstrates the algorithm, not
   general factoring.
 - H₂ in a minimal basis is exactly solvable classically, which is why it's the validation case.
   With two electrons, UCCSD can represent the exact ground state, so matching it shows correctness,
   not quantum advantage.
 - Single GPU only. No noise models or density matrices.
-- Benchmarks so far come from one laptop GPU in a degraded clock state (see the caveat above).
+- All benchmarks so far come from one 4 GB laptop GPU. The 29–30 qubit runs on a 16 GB GPU
+  (Colab T4) are set up in the notebook but have not been run.
 
 ## Licence
 

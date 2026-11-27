@@ -35,6 +35,10 @@ Source: `bench/results/env_nvidia-geforce-rtx-3050-laptop-gpu.json`.
   environment (H on qubit 0 gives the expected amplitudes).
 - In a sandboxed shell the GPU reports `cudaErrorDevicesUnavailable`. GPU commands must run in a
   normal shell.
+- On 2026-11-19 the driver got stuck in a faulty clock state ("System is not in ready state",
+  single-digit GB/s). A reboot fixed it; all benchmarks were re-run on 2026-11-27 with normal
+  clocks (copy bandwidth 168 GB/s). `bench/run_env.py` records the live clock state in every
+  result, so a repeat of this would be visible.
 
 ### Memory limits that follow from 4 GB
 A complex64 state needs 8 bytes × 2ⁿ: 26 qubits = 512 MiB, 27 = 1 GiB, 28 = 2 GiB,

@@ -22,22 +22,28 @@ using bit masks, summed in double.
 **Correctness.** The NumPy reference matches Aer exactly on random circuits (no reordering or
 phase fixes), and the GPU matches NumPy on random circuits up to 20 qubits. Every gate is checked
 against explicit matrices. Norm and inverse invariants hold. Algorithms give their known answers.
-VQE matches exact diagonalisation of H₂ at 45 bond lengths (within 1.4e-10 Ha on CPU and 6.3e-5 Ha on
+VQE matches exact diagonalisation of H₂ at 45 bond lengths (within 1.4e-10 Ha on CPU and 3.3e-5 Ha on
 GPU in single precision, against a 1.6e-3 Ha requirement). The single-precision tolerance came from
 a measurement (worst error 5.5e-7).
 
 **Optimisations, each measured before/after.**
+0. Baseline: the general single-qubit kernel already runs at 99.5–99.8% of measured copy
+   bandwidth (168 GB/s on an RTX 3050 Laptop GPU).
 1. Specialised kernels per gate family. Cutting arithmetic gained nothing; cutting bytes gained
-   2.03× (phase gates, CZ, CP) and 3.57× (SWAP). That's the proof of memory-boundness.
+   1.99× (phase gates, CZ, CP) and 2.01× (SWAP). That's the proof of memory-boundness.
 2. Gate fusion. The first version was slower despite fewer passes, because of register spills.
-   With one compiled kernel per matrix size, width-3 fusion ran a random circuit 2.08× faster than
-   the baseline.
-3. Precision: complex128 costs exactly 2.0× per gate (the byte ratio) and one qubit of capacity.
+   With one compiled kernel per matrix size, width-2 fusion ran the QFT 1.84× and a random
+   circuit 1.57× faster than the baseline.
+3. Precision: complex128 costs 2.5–2.8× per gate (more than the 2× byte ratio, because consumer
+   FP64 is slow) and one qubit of capacity.
+
+**Fair comparison** (same circuits, same single precision, same returned value, full state on every
+engine): from 18 qubits up qsim was 1.2–1.7× faster than cuStateVec driven through its general
+per-gate API, and 3.4–5.3× faster than Qiskit Aer GPU at 24 qubits. Below 14 qubits cuStateVec was faster.
 
 **Scale.** 28 qubits in complex64 and 27 in complex128 on a 4 GB laptop GPU, verified by norm and
 sampling.
 
-**Honest limits.** Not faster than Aer or cuStateVec, and not meant to be. Benchmarks so far ran on a
-laptop GPU in a faulty clock state, so only within-run ratios are reported, and a clean re-run
-is pending. Shor's arithmetic is hard-coded for 15. H₂ is a validation case, not a quantum
-advantage.
+**Honest limits.** One 4 GB laptop GPU, two circuit families, and cuStateVec's general API only,
+so this is not a general ranking of simulators. The 29–30 qubit T4 runs are still to do.
+Shor's arithmetic is hard-coded for 15. H₂ is a validation case, not a quantum advantage.
