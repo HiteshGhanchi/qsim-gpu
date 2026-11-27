@@ -1,0 +1,20 @@
+{
+ "benchmark": "w6_pyodide_browser",
+ "note": "Recorded with web/pyodide-check/index.html in a Chromium-based browser (Chrome 156 engine) on the RTX 3050 laptop's CPU (Linux), 2026-11-27. NumPy backend (complex128) inside Pyodide; values copied from the page's window.qsimResult.",
+ "info": {"python": "3.14.2", "numpy": "2.4.6", "qsimgpu": "0.2.0", "platform": "Emscripten-5.0.3-wasm32-32bit"},
+ "browser": "Chromium-based, Chrome/156.0.8078.100, Linux x86_64",
+ "startup_ms": 2096.9,
+ "timings": [
+  {"n": 10, "gates": 58, "ms_total": 2.9, "ms_per_gate": 0.050},
+  {"n": 14, "gates": 82, "ms_total": 12.8, "ms_per_gate": 0.156},
+  {"n": 18, "gates": 106, "ms_total": 178.5, "ms_per_gate": 1.684}
+ ],
+ "largest_qubits_that_ran": 26,
+ "limit_reason": "27 qubits needs a 2 GiB complex128 array; 32-bit WebAssembly refuses arrays of 2 GiB or more (numpy: 'array is too big')",
+ "results": {
+  "bell": [[0.7071067811865475, 0], [0, 0], [0, 0], [0.7071067811865475, 0]],
+  "ghz_probabilities": [0.4999999999999999, 0, 0, 0, 0, 0, 0, 0.4999999999999999],
+  "trace_steps": 16,
+  "trace_last_bloch_q9": [0.09784339500725553, 0.019833838076209875, 0.9950041652780249]
+ }
+}

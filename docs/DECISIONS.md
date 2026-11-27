@@ -458,3 +458,24 @@ from it.
   downloads the log and fails if any test failed. It needs the owner to add a secret
   `KAGGLE_API_TOKEN` and a variable `KAGGLE_USERNAME` in the GitHub settings (the Kaggle CLI reads
   the token from that environment variable). The workflow hasn't been run yet.
+
+## W6 result: the NumPy backend in the browser via Pyodide (2026-11-27)
+
+- Target: Pyodide 314.0.8. Its package list (checked on the jsDelivr CDN) has Python 3.14.2, NumPy 2.4.6
+  and scipy 1.18.0, so `requires-python >= 3.12` and `numpy >= 2.0` are met with no code change. The
+  wheel is pure Python (`py3-none-any`; the `.cu` files are data) and installs with `micropip`.
+- `web/pyodide-check/`: `workload.py` (Bell, a QASM-parsed GHZ, a 15-gate 10-qubit step trace,
+  timings), `check.mjs` (Node.js + the `pyodide` npm package, pinned 314.0.8), `index.html` (browser
+  test page). `scripts/compare_pyodide.py` compares with CPython.
+- Results: the Node.js run matches CPython within 1.3e-15 (Bell and GHZ exactly). The browser run, in
+  a Chromium-based browser (Chrome 156 engine), gave the same Bell and GHZ numbers and the
+  same last-step Bloch vector within 3.3e-16. Its timings (`bench/results/browser/w6_pyodide_chromium.json`)
+  were 0.050 / 0.156 / 1.684 ms per gate at 10 / 14 / 18 qubits, and the page started in about 2.1 s
+  (Pyodide, NumPy and the wheel loaded).
+- Practical limit in the browser: 26 qubits for the complex128 NumPy backend. 27 qubits needs a 2 GiB
+  array, which NumPy refuses under 32-bit WebAssembly ("array is too big").
+- CI choice: Node.js + Pyodide rather than Playwright + Chromium. The correctness check doesn't need
+  a browser engine, it's faster and has fewer moving parts. Browser timings are measured by hand
+  with the test page.
+- UNVERIFIED: Firefox timings, which can't be measured from this environment. Open `index.html` in
+  Firefox (instructions on the page) to record them.

@@ -186,7 +186,9 @@ def build(r: Results) -> str:
 
 
 def newest_folder() -> Path:
-    folders = [f for f in RESULTS.iterdir() if f.is_dir() and any(f.glob("*.json"))]
+    # GPU folders only ("browser" holds the Pyodide measurements, reported separately)
+    folders = [f for f in RESULTS.iterdir()
+               if f.is_dir() and f.name != "browser" and any(f.glob("*.json"))]
     if not folders:
         sys.exit("no results found under bench/results/")
     return max(folders, key=lambda f: max(p.stat().st_mtime for p in f.glob("*.json")))

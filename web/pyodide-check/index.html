@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qsim-gpu in the browser (Pyodide check)</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 52rem; padding: 0 1rem; }
+  pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; font-size: 13px; }
+  .ok { color: #176f2c; } .err { color: #b00020; }
+</style>
+</head>
+<body>
+<h1>qsim-gpu in the browser</h1>
+<p>Not the website: a test page. It loads Pyodide, installs the qsim-gpu wheel from <code>dist/</code>,
+runs the same workload as <code>scripts/compare_pyodide.py</code>, times the NumPy backend at 10, 14 and
+18 qubits, and probes how many qubits fit. Serve this folder over HTTP (for example
+<code>python -m http.server</code>) after copying the built wheel into <code>dist/</code>.</p>
+<p id="status">Loading Pyodide…</p>
+<pre id="out"></pre>
+<script src="https://cdn.jsdelivr.net/pyodide/v314.0.8/full/pyodide.js"></script>
+<script>
+const WHEEL = "dist/qsim_gpu-0.2.0-py3-none-any.whl";
+const status = document.getElementById("status");
+async function main() {
+  const t0 = performance.now();
+  const pyodide = await loadPyodide();
+  await pyodide.loadPackage(["numpy", "micropip"]);
+  status.textContent = "Installing the wheel…";
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install(new URL(WHEEL, location.href).href);
+  pyodide.FS.writeFile("/tmp/workload.py", await (await fetch("workload.py")).text());
+  status.textContent = "Running the workload and timings…";
+  const startup_ms = performance.now() - t0;
+  const out = JSON.parse(pyodide.runPython(`
+import sys, json
+sys.path.insert(0, "/tmp")
+import workload
+data = json.loads(workload.main_json(with_timings=True))
+limit = None
+for n in (20, 22, 24, 26, 27, 28):
+    try:
+        b = workload.NumpyBackend(n)
+        b.run(workload.Circuit(n).h(0).cx(0, n - 1))
+        p = b.probabilities()
+        limit = n
+        del b, p
+    except (MemoryError, ValueError):  # 32-bit WebAssembly: arrays must stay below 2 GiB
+        break
+data["largest_qubits_that_ran"] = limit
+json.dumps(data)`));
+  // Record only the engine name and version, not the full user-agent string (which can name the
+  // app or device the page runs in).
+  const ua = navigator.userAgent;
+  const m = ua.match(/(Firefox|Edg|Chrome|Version)\/([\d.]+)/);
+  out.browser = m ? `${m[1] === "Version" ? "Safari" : m[1]} ${m[2]}` : "unknown";
+  out.startup_ms = startup_ms;
+  window.qsimResult = out;
+  status.innerHTML = '<span class="ok">Done.</span> Copy the JSON below into bench/results/.';
+  document.getElementById("out").textContent = JSON.stringify(
+    {info: out.info, browser: out.browser, startup_ms: out.startup_ms, timings: out.timings,
+     largest_qubits_that_ran: out.largest_qubits_that_ran,
+     bell: out.results.bell, ghz_probabilities: out.results.ghz_probabilities}, null, 2);
+}
+main().catch(e => { status.innerHTML = `<span class="err">${e}</span>`; window.qsimError = String(e); });
+</script>
+</body>
+</html>

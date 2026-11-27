@@ -35,3 +35,23 @@ jobs:
         run: pip install build && python -m build
       - name: Install the wheel into a clean environment and run a Bell circuit
         run: python scripts/check_wheel.py dist/*.whl
+
+  pyodide:
+    # Installs the built wheel into Pyodide (Python compiled to WebAssembly, as used in browsers)
+    # under Node.js and checks its results match CPython's within ATOL_COMPLEX128.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build the wheel and install the package for the comparison
+        run: pip install build && python -m build --wheel && pip install -e .
+      - name: Run the workload inside Pyodide
+        working-directory: web/pyodide-check
+        run: npm install && node check.mjs ../../dist/*.whl pyodide_out.json
+      - name: Compare with CPython
+        run: python scripts/compare_pyodide.py web/pyodide-check/pyodide_out.json

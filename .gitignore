@@ -22,3 +22,7 @@ dist/
 .idea/
 .DS_Store
 kaggle_out/
+web/pyodide-check/node_modules/
+web/pyodide-check/package-lock.json
+web/pyodide-check/pyodide_out.json
+web/pyodide-check/dist/

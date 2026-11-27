@@ -251,6 +251,23 @@ print(to_qasm2(circuit))
 with `python scripts/kaggle_run.py push`, or on Colab with `notebooks/colab_run.ipynb`.
 `python -m bench.report` then rewrites the result tables in this README from the JSON files.
 
+## Runs in the browser
+
+The NumPy backend (pure Python + NumPy) runs unchanged in [Pyodide](https://pyodide.org), Python
+compiled to WebAssembly. `web/pyodide-check/` holds a test page and a Node.js script that install the
+built wheel into Pyodide 314.0.8 (Python 3.14.2, NumPy 2.4.6) and compare its results with CPython:
+they agree to 1e-15, and CI runs this check on every push. In a Chromium-based browser (Chrome 156
+engine) on this laptop (`bench/results/browser/w6_pyodide_chromium.json`):
+
+| Qubits | ms per gate (NumPy backend in the browser) |
+|---|---|
+| 10 | 0.050 |
+| 14 | 0.156 |
+| 18 | 1.684 |
+
+The largest state that ran was 26 qubits. At 27 qubits the 2 GiB complex128 array is over 32-bit
+WebAssembly's limit. Firefox and other browsers haven't been measured yet.
+
 ## How GPU code is checked without a GPU in CI
 
 GitHub's free runners have no GPU. `scripts/make_goldens.py` stores the GPU's outputs for a fixed

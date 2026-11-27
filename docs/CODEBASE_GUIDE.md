@@ -52,6 +52,8 @@ If you know web backends, a rough mapping:
 | `LICENSE` | MIT. |
 | `CHANGELOG.md` | what changed in each version (semantic versioning) |
 | `.github/workflows/release.yml` | tag `v*` → build, check and publish to TestPyPI; real PyPI only when started by hand; trusted publishing, no tokens |
+| `web/pyodide-check/` | `workload.py` (the same workload for CPython and Pyodide), `check.mjs` (installs the wheel into Pyodide under Node.js), `index.html` (test page for a real browser, also measures timings and the qubit limit) |
+| `scripts/compare_pyodide.py` | compares a Pyodide run with CPython within `ATOL_COMPLEX128` |
 | `scripts/make_goldens.py` | runs fixed circuits on the GPU and stores their outputs + kernel hashes in `tests/data/goldens/` (regenerate after any kernel change) |
 | `.github/workflows/gpu-kaggle.yml` | manual: runs the full GPU test suite on a Kaggle T4 using the owner's secret `KAGGLE_API_TOKEN` |
 | `scripts/check_wheel.py` | checks a built wheel contains the kernels and `py.typed`, installs it in a clean environment and runs a Bell circuit |

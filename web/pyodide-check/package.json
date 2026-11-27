@@ -1,0 +1,9 @@
+{
+  "name": "qsimgpu-pyodide-check",
+  "private": true,
+  "description": "Runs the qsim-gpu wheel inside Pyodide under Node.js (CI check)",
+  "type": "module",
+  "dependencies": {
+    "pyodide": "314.0.8"
+  }
+}
