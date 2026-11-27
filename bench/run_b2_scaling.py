@@ -13,8 +13,8 @@ import argparse
 import numpy as np
 
 from bench.run_env import save_result, time_gpu
-from qsim import gates
-from qsim.backends.cuda_backend import CudaBackend
+from qsimgpu import gates
+from qsimgpu.backends.cuda_backend import CudaBackend
 
 
 def main() -> None:

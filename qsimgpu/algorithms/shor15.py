@@ -21,9 +21,9 @@ from fractions import Fraction
 
 import numpy as np
 
-from qsim.algorithms.qft import qft_gates
-from qsim.backends.base import Backend
-from qsim.circuit import Circuit
+from qsimgpu.algorithms.qft import qft_gates
+from qsimgpu.backends.base import Backend
+from qsimgpu.circuit import Circuit
 
 N = 15
 N_INPUT = 8

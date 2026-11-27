@@ -29,8 +29,8 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from qsim.backends.base import Backend
-from qsim.circuit import Circuit
+from qsimgpu.backends.base import Backend
+from qsimgpu.circuit import Circuit
 
 DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "h2_hamiltonians.json"
 Terms = list[tuple[float, str]]

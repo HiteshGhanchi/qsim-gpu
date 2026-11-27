@@ -15,8 +15,8 @@ import cupy as cp
 import numpy as np
 
 from bench.run_env import save_result, time_gpu
-from qsim.backends.cuda_backend import BLOCK, MAX_BLOCKS, CudaBackend, _module
-from qsim.circuit import Gate
+from qsimgpu.backends.cuda_backend import BLOCK, MAX_BLOCKS, CudaBackend, _module
+from qsimgpu.circuit import Gate
 
 
 def cases(n: int) -> list[tuple[str, Gate, float]]:

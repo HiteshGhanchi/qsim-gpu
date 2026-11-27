@@ -1,6 +1,6 @@
 """CUDA backend: the statevector lives in GPU memory as one CuPy array of 2^n amplitudes.
 
-Kernels are CUDA C files in qsim/kernels/, compiled at run time with NVRTC through
+Kernels are CUDA C files in qsimgpu/kernels/, compiled at run time with NVRTC through
 cupy.RawModule, once per precision. Every gate is one streaming pass over the state:
 each GPU thread owns an independent group of amplitudes, so there are no races and no
 synchronisation between threads.
@@ -14,9 +14,9 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-from qsim.backends.base import check_basis_state, pauli_masks
-from qsim.circuit import Circuit, Gate
-from qsim.kernels import build_source
+from qsimgpu.backends.base import check_basis_state, pauli_masks
+from qsimgpu.circuit import Circuit, Gate
+from qsimgpu.kernels import build_source
 
 BLOCK = 256           # threads per block (also the reduction width in measure/expect.cu)
 MAX_BLOCKS = 65535    # grid-stride loops cover any remaining work

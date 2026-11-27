@@ -606,7 +606,7 @@ long long i1  = i0 | (1LL << k);                        // ...and its partner
 - No two threads touch the same amplitude, so they never wait for each other.
 
 ### How the project compiles kernels
-The kernels are plain text files (`qsim/kernels/*.cu`). When the simulator starts, CuPy hands
+The kernels are plain text files (`qsimgpu/kernels/*.cu`). When the simulator starts, CuPy hands
 the text to **NVRTC** (NVIDIA's run-time compiler), which turns it into GPU machine code. There's no
 separate build step. That's why `nvcc` (the usual CUDA compiler) isn't needed.
 

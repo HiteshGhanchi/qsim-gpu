@@ -69,8 +69,8 @@ print("every amplitude should be 1/sqrt(2^n):", float(abs(big[12345])), "vs",
       1 / math.sqrt(2**n))
 
 # --- Part 5: the same thing through the real project --------------------------------------
-from qsim.backends.cuda_backend import CudaBackend  # noqa: E402
-from qsim.circuit import Circuit  # noqa: E402
+from qsimgpu.backends.cuda_backend import CudaBackend  # noqa: E402
+from qsimgpu.circuit import Circuit  # noqa: E402
 
 sim = CudaBackend(2)
 sim.run(Circuit(2).h(0).cx(0, 1))

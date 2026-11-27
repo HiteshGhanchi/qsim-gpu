@@ -25,12 +25,12 @@ is in understanding why classical simulation is expensive, and in making it fast
 
 | Part | What it does |
 |---|---|
-| `qsim/gates.py` | Exact gate matrices (Qiskit conventions) and which memory-access family each gate belongs to |
-| `qsim/circuit.py` | A circuit as plain data: validated `Gate` records, builder methods, `inverse()`, `depth()` |
-| `qsim/backends/numpy_backend.py` | The reference simulator: simple, double precision, used to judge everything else |
-| `qsim/backends/cuda_backend.py` + `qsim/kernels/*.cu` | The GPU simulator: CUDA C kernels compiled at run time through CuPy |
-| `qsim/passes/fusion.py` | Gate fusion: merge consecutive gates into one matrix, so the state is streamed fewer times |
-| `qsim/algorithms/` | GHZ, Grover, QFT, Shor (N = 15), VQE for H₂ |
+| `qsimgpu/gates.py` | Exact gate matrices (Qiskit conventions) and which memory-access family each gate belongs to |
+| `qsimgpu/circuit.py` | A circuit as plain data: validated `Gate` records, builder methods, `inverse()`, `depth()` |
+| `qsimgpu/backends/numpy_backend.py` | The reference simulator: simple, double precision, used to judge everything else |
+| `qsimgpu/backends/cuda_backend.py` + `qsimgpu/kernels/*.cu` | The GPU simulator: CUDA C kernels compiled at run time through CuPy |
+| `qsimgpu/passes/fusion.py` | Gate fusion: merge consecutive gates into one matrix, so the state is streamed fewer times |
+| `qsimgpu/algorithms/` | GHZ, Grover, QFT, Shor (N = 15), VQE for H₂ |
 | `bench/` | Benchmarks; every result is stored as JSON with the GPU, driver, CUDA and library versions |
 | `tests/` | 300+ tests: CPU tests run anywhere, GPU tests skip themselves without a GPU |
 | `docs/` | Decisions with evidence, environment, interview write-up, a file-by-file guide |
@@ -133,11 +133,12 @@ uv pip install --python .venv/bin/python -e ".[dev,compare]" "cupy-cuda12x[ctk]"
 .venv/bin/python -m bench.run_all    # every benchmark, results in bench/results/
 ```
 
-Any Python from 3.12 works. A small example:
+Any Python from 3.12 works. The package installs as `qsim-gpu` and is imported as `qsimgpu`
+(the shorter name `qsim` is already taken on PyPI). A small example:
 
 ```python
-from qsim.circuit import Circuit
-from qsim.backends.cuda_backend import CudaBackend   # or: from qsim.backends import NumpyBackend
+from qsimgpu.circuit import Circuit
+from qsimgpu.backends.cuda_backend import CudaBackend   # or: from qsimgpu.backends import NumpyBackend
 
 bell = Circuit(2).h(0).cx(0, 1)
 sim = CudaBackend(2)

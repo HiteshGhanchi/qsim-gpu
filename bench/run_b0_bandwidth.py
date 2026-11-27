@@ -15,7 +15,7 @@ import cupy as cp
 import numpy as np
 
 from bench.run_env import save_result, time_gpu
-from qsim.backends.cuda_backend import BLOCK, MAX_BLOCKS, _module
+from qsimgpu.backends.cuda_backend import BLOCK, MAX_BLOCKS, _module
 
 
 def main() -> None:

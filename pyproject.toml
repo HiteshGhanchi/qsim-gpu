@@ -22,10 +22,10 @@ compare = ["qiskit>=1.0", "qiskit-aer>=0.15"]
 chem = ["pyscf>=2.6", "openfermion>=1.6"]
 
 [tool.setuptools.packages.find]
-include = ["qsim*"]
+include = ["qsimgpu*"]
 
 [tool.setuptools.package-data]
-"qsim.kernels" = ["*.cu", "*.cuh"]
+"qsimgpu.kernels" = ["*.cu", "*.cuh"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -46,7 +46,7 @@ select = ["E", "F", "W", "I", "B", "UP", "NPY"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["qsim"]
+files = ["qsimgpu"]
 
 [[tool.mypy.overrides]]
 module = ["cupy.*", "qiskit.*", "qiskit_aer.*", "scipy.*", "pyscf.*", "openfermion.*"]

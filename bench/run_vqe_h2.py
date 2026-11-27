@@ -11,7 +11,7 @@ import time
 from dataclasses import asdict
 
 from bench.run_env import save_result
-from qsim.algorithms import vqe
+from qsimgpu.algorithms import vqe
 
 
 def main() -> None:
@@ -21,10 +21,10 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.backend == "numpy":
-        from qsim.backends import NumpyBackend as make
+        from qsimgpu.backends import NumpyBackend as make
         fd_step = 1e-5
     else:
-        from qsim.backends.cuda_backend import CudaBackend as make  # type: ignore[assignment]
+        from qsimgpu.backends.cuda_backend import CudaBackend as make  # type: ignore[assignment]
         fd_step = 1e-4  # complex64 energies carry ~1e-7 noise; a larger step keeps gradients clean
 
     t0 = time.perf_counter()

@@ -8,17 +8,17 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 
-from qsim.algorithms import grover as gr
-from qsim.algorithms import shor15
-from qsim.algorithms.qft import qft
-from qsim.backends import NumpyBackend
-from qsim.circuit import Circuit
+from qsimgpu.algorithms import grover as gr
+from qsimgpu.algorithms import shor15
+from qsimgpu.algorithms.qft import qft
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.circuit import Circuit
 
 BackendFactory = Callable[[int], object]
 
 
 def _cuda(n: int):  # type: ignore[no-untyped-def]
-    from qsim.backends.cuda_backend import CudaBackend
+    from qsimgpu.backends.cuda_backend import CudaBackend
 
     return CudaBackend(n)
 

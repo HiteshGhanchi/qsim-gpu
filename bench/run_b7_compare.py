@@ -36,8 +36,8 @@ from typing import Any
 import numpy as np
 
 from bench.run_env import save_result
-from qsim.algorithms.qft import qft
-from qsim.circuit import Circuit
+from qsimgpu.algorithms.qft import qft
+from qsimgpu.circuit import Circuit
 from tests.circuits import random_circuit
 
 
@@ -63,8 +63,8 @@ def _z0(n: int) -> str:
 
 
 def engine_qsim(c: Circuit, fused: bool = False) -> Callable[[], float]:
-    from qsim.backends.cuda_backend import CudaBackend
-    from qsim.passes.fusion import fuse
+    from qsimgpu.backends.cuda_backend import CudaBackend
+    from qsimgpu.passes.fusion import fuse
 
     b = CudaBackend(c.n_qubits, np.complex64)
 
@@ -133,7 +133,7 @@ def engine_custatevec(c: Circuit) -> Callable[[], float]:
 
 def check_custatevec_matches_oracle() -> float:
     """Make sure the cuStateVec calls above implement the same circuit."""
-    from qsim.backends import NumpyBackend
+    from qsimgpu.backends import NumpyBackend
 
     c = random_circuit(8, 60, seed=7)
     run = engine_custatevec(c)

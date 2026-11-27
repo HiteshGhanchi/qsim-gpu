@@ -14,8 +14,8 @@ import argparse
 import numpy as np
 
 from bench.run_env import save_result
-from qsim.backends import NumpyBackend
-from qsim.backends.cuda_backend import CudaBackend
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.backends.cuda_backend import CudaBackend
 from tests.circuits import random_circuit
 
 

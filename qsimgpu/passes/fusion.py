@@ -15,12 +15,12 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 
-from qsim.circuit import Circuit, Gate
+from qsimgpu.circuit import Circuit, Gate
 
 
 def block_matrix(block: list[Gate], qubits: tuple[int, ...]) -> NDArray[np.complex128]:
     """Matrix of a list of gates restricted to `qubits` (qubits[0] = least significant bit)."""
-    from qsim.backends.numpy_backend import NumpyBackend
+    from qsimgpu.backends.numpy_backend import NumpyBackend
 
     k = len(qubits)
     local = {q: i for i, q in enumerate(qubits)}

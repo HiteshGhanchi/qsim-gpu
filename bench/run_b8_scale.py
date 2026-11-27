@@ -15,8 +15,8 @@ import cupy as cp
 import numpy as np
 
 from bench.run_env import save_result
-from qsim.backends.cuda_backend import CudaBackend
-from qsim.circuit import Circuit
+from qsimgpu.backends.cuda_backend import CudaBackend
+from qsimgpu.circuit import Circuit
 
 
 def main() -> None:

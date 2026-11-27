@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from qsim.backends import NumpyBackend
-from qsim.circuit import Circuit, Gate
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.circuit import Circuit, Gate
 from tests.circuits import random_circuit, random_state
 from tests.tolerances import ATOL_COMPLEX64, ATOL_COMPLEX128
 
@@ -15,7 +15,7 @@ DTYPES = [(np.complex64, ATOL_COMPLEX64), (np.complex128, ATOL_COMPLEX128)]
 
 
 def cuda(n: int, dtype: type = np.complex64, specialized: bool = True):  # type: ignore[no-untyped-def]
-    from qsim.backends.cuda_backend import CudaBackend
+    from qsimgpu.backends.cuda_backend import CudaBackend
 
     return CudaBackend(n, dtype, specialized=specialized)
 
@@ -196,7 +196,7 @@ def test_expectation_hamiltonian_and_norm() -> None:
 
 
 def test_host_copy_refused_above_limit() -> None:
-    from qsim.backends.cuda_backend import CudaBackend
+    from qsimgpu.backends.cuda_backend import CudaBackend
 
     b = CudaBackend(4)
     b.max_host_qubits = 3

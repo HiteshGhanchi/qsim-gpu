@@ -52,7 +52,7 @@ If you know web backends, a rough mapping:
 | `.github/workflows/ci.yml` | GitHub Actions runs lint, type check and the CPU tests on Python 3.12 and 3.14. Free runners have no GPU, so GPU tests are skipped there (they skip themselves). |
 | `.gitignore` | Virtual environments and tool caches. |
 
-### `qsim/gates.py`, the gate catalogue
+### `qsimgpu/gates.py`, the gate catalogue
 - `SPECS`: for every gate name, how many targets, controls and parameters it takes, which base gate
   it applies (`cx` applies `x`), and its **family**: `diagonal` (only multiplies amplitudes by
   phases), `permutation` (only moves amplitudes) or `general` (mixes them). The family decides which
@@ -64,7 +64,7 @@ If you know web backends, a rough mapping:
 - Multi-target matrices are little-endian over the target list: bit i of the row index belongs
   to `targets[i]`.
 
-### `qsim/circuit.py`, circuits as plain data
+### `qsimgpu/circuit.py`, circuits as plain data
 - `Gate` is a frozen dataclass: name, targets, controls, params, and a matrix only for `"unitary"`.
   It validates itself on creation (right number of targets/params, no qubit used twice, unitary
   matrices really unitary).
@@ -79,7 +79,7 @@ If you know web backends, a rough mapping:
   that return `self`, so calls chain: `Circuit(2).h(0).cx(0, 1)`. Also `inverse()` (reverse order,
   invert each gate), `depth()` (layers if every gate starts as early as possible) and `count_ops()`.
 
-### `qsim/backends/base.py`, the shared interface
+### `qsimgpu/backends/base.py`, the shared interface
 - `Backend` is a `typing.Protocol`: the methods every simulator provides (`reset`, `apply`,
   `run`, `statevector`, `probabilities`, `sample`, `expectation_pauli`,
   `expectation_hamiltonian`, `amplitude_norm`).
@@ -88,7 +88,7 @@ If you know web backends, a rough mapping:
 - **Pauli order:** the leftmost character is the highest qubit, the same way bit patterns are
   written. A test checks `"IZ"` measures qubit 0 and `"ZI"` measures qubit 1.
 
-### `qsim/backends/numpy_backend.py`, the reference ("oracle")
+### `qsimgpu/backends/numpy_backend.py`, the reference ("oracle")
 - **Goal: obviously correct, not fast.** Double precision (complex128), so it's more precise
   than the GPU it judges.
 - The state is stored with shape `(2, 2, …, 2)`, one axis per qubit, with qubit k on axis n−1−k.
@@ -101,7 +101,7 @@ If you know web backends, a rough mapping:
   take an inner product. That's deliberately different from the GPU's bit-mask formula, so the two
   can catch each other's bugs.
 
-### `qsim/backends/cuda_backend.py`, the GPU engine
+### `qsimgpu/backends/cuda_backend.py`, the GPU engine
 - The state is one CuPy array of 2ⁿ amplitudes in GPU memory.
 - Kernels are compiled at run time with NVRTC through `cupy.RawModule`, one compile per file and
   precision, cached with `functools.cache`. No nvcc and no build step.
@@ -116,7 +116,7 @@ If you know web backends, a rough mapping:
 - `statevector()` and `probabilities()` refuse above 26 qubits, because copying 2ⁿ values to the
   host would be huge.
 
-### `qsim/kernels/`, the CUDA C code
+### `qsimgpu/kernels/`, the CUDA C code
 | File | Kernels |
 |---|---|
 | `common.cuh` | `cplx` (complex<float> or complex<double>), 64-bit `idx_t`, and `insert_zero_bits` |
@@ -128,13 +128,13 @@ If you know web backends, a rough mapping:
 All kernels use **grid-stride loops** (each thread handles items t, t + stride, …), so one
 launch shape works for any problem size.
 
-### `qsim/passes/fusion.py`
+### `qsimgpu/passes/fusion.py`
 `fuse(circuit, max_qubits=m)` walks the gates in order and grows a block while the union of
 their qubits stays within m. When the next gate would exceed m, the block becomes one `unitary`
 gate whose matrix is computed by running the block on a tiny NumPy simulator, one column per
 basis state. A one-gate block is left alone so it keeps its specialised kernel.
 
-### `qsim/algorithms/`
+### `qsimgpu/algorithms/`
 | File | What it builds | Checked by |
 |---|---|---|
 | `qft.py` | H + controlled-phase ladder + swaps; `qft_gates()` can target any qubit list (Shor uses it on 8 of 12 qubits) | QFT of each basis state equals e^{2πixk/N}/√N; a comb with spacing r peaks at multiples of N/r |

@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
-import qsim
-from qsim.kernels import build_source, load_source
+import qsimgpu
+from qsimgpu.kernels import build_source, load_source
 
 
 def test_package_imports() -> None:
-    assert qsim.__version__
+    assert qsimgpu.__version__
 
 
 def test_kernel_sources_are_packaged() -> None:

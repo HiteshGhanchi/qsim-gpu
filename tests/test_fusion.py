@@ -5,10 +5,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from qsim.algorithms.qft import qft
-from qsim.backends import NumpyBackend
-from qsim.circuit import Circuit
-from qsim.passes.fusion import block_matrix, fuse
+from qsimgpu.algorithms.qft import qft
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.circuit import Circuit
+from qsimgpu.passes.fusion import block_matrix, fuse
 from tests.circuits import random_circuit
 
 
@@ -49,7 +49,7 @@ def test_single_gate_blocks_are_not_wrapped() -> None:
 
 
 def test_block_matrix_of_cx() -> None:
-    from qsim.circuit import Gate
+    from qsimgpu.circuit import Gate
 
     m = block_matrix([Gate("cx", (1,), (0,))], (0, 1))
     expected = np.array([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]])
@@ -64,7 +64,7 @@ def test_rejects_too_wide_blocks() -> None:
 @pytest.mark.gpu
 @pytest.mark.parametrize("m", [2, 3, 4, 5])
 def test_fused_circuit_on_gpu_matches_oracle(m: int) -> None:
-    from qsim.backends.cuda_backend import CudaBackend
+    from qsimgpu.backends.cuda_backend import CudaBackend
 
     c = random_circuit(14, 150, 31 + m)
     b = CudaBackend(14)

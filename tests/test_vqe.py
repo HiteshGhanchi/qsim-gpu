@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 from scipy.linalg import expm
 
-from qsim.algorithms import vqe
-from qsim.backends import NumpyBackend
-from qsim.circuit import Circuit
+from qsimgpu.algorithms import vqe
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.circuit import Circuit
 from tests.circuits import random_pauli, random_state
 from tests.tolerances import CHEMICAL_ACCURACY
 
@@ -91,7 +91,7 @@ def test_vqe_reaches_chemical_accuracy_on_whole_grid(stage: str) -> None:
 
 @pytest.mark.gpu
 def test_vqe_on_gpu_selected_points() -> None:
-    from qsim.backends.cuda_backend import CudaBackend
+    from qsimgpu.backends.cuda_backend import CudaBackend
 
     pts = [p for p in DATA if p["bond_length_angstrom"] in (0.3, 0.75, 1.5, 2.5)]
     scan = vqe.run_scan(lambda n: CudaBackend(n), "4q", points=pts, fd_step=1e-4)

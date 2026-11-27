@@ -11,9 +11,9 @@ import cupy as cp
 import numpy as np
 
 from bench.run_env import save_result, time_gpu
-from qsim import gates
-from qsim.backends import NumpyBackend
-from qsim.backends.cuda_backend import CudaBackend
+from qsimgpu import gates
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.backends.cuda_backend import CudaBackend
 from tests.circuits import random_circuit
 
 DTYPES = {"complex64": np.complex64, "complex128": np.complex128}

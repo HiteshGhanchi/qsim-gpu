@@ -5,8 +5,8 @@ import math
 import numpy as np
 import pytest
 
-from qsim import gates
-from qsim.circuit import Gate
+from qsimgpu import gates
+from qsimgpu.circuit import Gate
 
 S2 = 1 / math.sqrt(2)
 

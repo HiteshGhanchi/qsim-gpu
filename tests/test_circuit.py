@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from qsim.circuit import Circuit, Gate
+from qsimgpu.circuit import Circuit, Gate
 
 
 def test_builders_use_canonical_encoding() -> None:

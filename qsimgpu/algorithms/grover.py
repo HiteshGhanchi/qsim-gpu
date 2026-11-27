@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import math
 
-from qsim.circuit import Circuit
+from qsimgpu.circuit import Circuit
 
 
 def _flip_all_ones(c: Circuit) -> None:

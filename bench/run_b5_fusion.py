@@ -18,10 +18,10 @@ from typing import Any
 import numpy as np
 
 from bench.run_env import save_result
-from qsim.algorithms.qft import qft
-from qsim.backends.cuda_backend import CudaBackend
-from qsim.circuit import Circuit
-from qsim.passes.fusion import fuse
+from qsimgpu.algorithms.qft import qft
+from qsimgpu.backends.cuda_backend import CudaBackend
+from qsimgpu.circuit import Circuit
+from qsimgpu.passes.fusion import fuse
 from tests.circuits import random_circuit
 
 

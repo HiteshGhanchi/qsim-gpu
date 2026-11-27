@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 
-from qsim.circuit import Circuit
+from qsimgpu.circuit import Circuit
 
 ONE_QUBIT = ["h", "x", "y", "z", "s", "sdg", "t", "tdg"]
 ONE_QUBIT_PARAM = ["rx", "ry", "rz", "p"]

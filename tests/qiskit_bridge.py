@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from qsim.circuit import Circuit
+from qsimgpu.circuit import Circuit
 
 
 def to_qiskit(circuit: Circuit):  # type: ignore[no-untyped-def]

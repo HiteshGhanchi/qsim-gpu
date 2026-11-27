@@ -6,7 +6,7 @@ Approved change requests and resolved [OPEN] items, newest last.
 
 ```
 CHANGE REQUEST
-What I want to change: add mypy (dev-only) and run it in strict mode on qsim/
+What I want to change: add mypy (dev-only) and run it in strict mode on qsimgpu/
 Why: owner wants TypeScript-style type safety; type hints alone are never checked
 What it affects: pyproject.toml (dev deps + config), one extra check command; no runtime change
 Cost/risk: small; NumPy/CuPy types are sometimes loose, so a few `# type: ignore` lines may be needed
@@ -35,7 +35,7 @@ mypy added to the dev/test dependency list.
 | OQ20 | VQE bond-length grid | 0.3 to 2.5 Å, step 0.05 Å. | owner |
 
 Other choices made while building Phase 0:
-- **Shared kernel header.** `qsim/kernels/common.cuh` holds the precision typedef target and the
+- **Shared kernel header.** `qsimgpu/kernels/common.cuh` holds the precision typedef target and the
   `insert_zero_bits` helper, so `gates.cu`, `measure.cu` and `expect.cu` don't repeat them.
 - **One source, two precisions.** The backend prepends `typedef float real_t;` or
   `typedef double real_t;` and compiles the same `.cu` text twice. This keeps the complex64 vs
@@ -184,7 +184,7 @@ copy kernel took 33.6 ms on the same state, so specialised Z/T/CZ/CP and SWAP no
 
 ## Phase 7.2: gate fusion (B5) and OQ9
 
-`qsim/passes/fusion.py` greedily merges consecutive gates while the union of their qubits stays
+`qsimgpu/passes/fusion.py` greedily merges consecutive gates while the union of their qubits stays
 ≤ m and replaces each block with one `unitary` gate (its matrix is computed by running the block on
 a small NumPy simulator, one column per basis state). Blocks of one gate stay unchanged so they keep
 their specialised kernel. Fused circuits are tested against the unfused ones for m = 1..5.
@@ -302,3 +302,24 @@ QFT 187 ms (qsim) vs 319 (cuStateVec, general per-gate API) vs 641 (best Aer GPU
 Random circuit: 92 vs 125 vs 484 vs 913. From 18 qubits up, qsim was 1.2–1.7× faster than
 cuStateVec used this way. Below 14 qubits cuStateVec was 1.7–2× faster. Aer CPU timings were noisy
 on this laptop (one point's slowest run took 30× its fastest), so they're rough.
+
+## Round 2: change requests W1–W8 (approved 2026-11-27)
+
+Goal of the round: turn the validated simulator into an engine that a website, outside users and
+other developers can build on. All eight CRs were approved together. Order of work: W5 rename,
+W1 preparation, W2, W3, W4, rest of W5, W7, W6, W8, then W1 reporting once T4 results exist.
+
+| CR | What | Changes earlier decisions | Effort |
+|---|---|---|---|
+| W1 | Re-run all benchmarks on a 16 GB T4. Every result gets a quick copy-bandwidth probe and is marked `"suspect"` if it is below 50% of the GPU's published bandwidth (T4: 320 GB/s, NVIDIA product brief, 2020). Results move to `bench/results/<gpu>/`. `bench/report.py` writes the README tables. Notebook fixed for Colab's CUDA 13 runtime. | OQ1: headline numbers come from the T4 | 6–8 h |
+| W2 | `run(circuit, on_step=None)` hook; `views.py` with marginal probabilities, Bloch vectors, guarded snapshots and an entanglement hint (valid only for pure states); a versioned step-trace JSON. Marginals on the GPU use a reduction kernel. | changes the `Backend.run` signature | 8–12 h |
+| W3 | Classical register, `measure`, `reset`, and gate conditions. Measurement reuses the expectation kernel for P(1) and `apply_diag` for the collapse. One host random generator feeds both backends so they give identical bits (except within ~1e-7 of a threshold). `run` returns the classical bits. Fusion and `inverse()` treat measurements as barriers. | extends the locked `Gate`/`Circuit` design | 16–24 h |
+| W4 | Hand-written OpenQASM 2 import/export (including `gate` definitions and parameter expressions); new named gates `u`, `sx`, `sxdg`; optional OpenQASM 3 via Qiskit; Qiskit interop moves into the package. Export raises a clear error for what QASM 2 cannot express. Test circuits from MQT Bench (MIT). | reverses "no OpenQASM import" | 14–20 h |
+| W5 | Rename the import package to avoid the PyPI `qsim` clash; numpy-only core install with `vqe` and `gpu-cuda12`/`gpu-cuda13` extras; public API and `py.typed`; changelog; trusted publishing (TestPyPI first, owner does the first real publish); wheel install test in CI. | removes matplotlib (OQ15) | 6–10 h |
+| W6 | Run the NumPy backend in the browser through Pyodide (target 314.0.8, Python 3.14.2). Correctness check in CI with Node.js + Pyodide; browser timings measured by hand. | — | 8–12 h |
+| W7 | Golden files: seeded GPU outputs plus SHA-256 of every kernel file, checked against the NumPy oracle on CPU CI. Optional GPU workflow on Kaggle through its API; the owner stores the token as a GitHub secret. | OQ17: CI still has no GPU, but kernel changes can no longer go unchecked | 6–10 h |
+| W8 | General UCCSD VQE for n spin orbitals / n electrons, a general Hamiltonian file format and generator, and LiH with a small active space. VQE is judged against the exact energy of the same active-space Hamiltonian (CASCI); full FCI is reported alongside. | — | 12–20 h |
+
+**W5 name decision (owner, 2026-11-27): change the name.** The import package becomes `qsimgpu`,
+matching the PyPI distribution name `qsim-gpu` (free on PyPI when checked on 2026-11-27, while
+`qsim` v0.22.0 and `qsimcirq` v0.22.1 are taken).

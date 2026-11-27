@@ -12,7 +12,7 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 
-from qsim.circuit import Circuit, Gate
+from qsimgpu.circuit import Circuit, Gate
 
 
 def qft_gates(qubits: Sequence[int], inverse: bool = False, swaps: bool = True) -> list[Gate]:

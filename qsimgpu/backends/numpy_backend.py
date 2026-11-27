@@ -16,9 +16,9 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 
-from qsim import gates
-from qsim.backends.base import check_basis_state, check_pauli
-from qsim.circuit import Circuit, Gate
+from qsimgpu import gates
+from qsimgpu.backends.base import check_basis_state, check_pauli
+from qsimgpu.circuit import Circuit, Gate
 
 _PAULI = {
     "X": gates.base_matrix("x"),

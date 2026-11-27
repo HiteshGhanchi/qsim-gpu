@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from qsim.backends import NumpyBackend
-from qsim.circuit import Circuit
+from qsimgpu.backends import NumpyBackend
+from qsimgpu.circuit import Circuit
 from tests.circuits import random_circuit
 from tests.tolerances import ATOL_COMPLEX128
 

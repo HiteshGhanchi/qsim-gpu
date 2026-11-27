@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 if TYPE_CHECKING:
     import numpy as np
 
-    from qsim.circuit import Circuit, Gate
+    from qsimgpu.circuit import Circuit, Gate
 
 PAULI_CHARS = frozenset("IXYZ")
 

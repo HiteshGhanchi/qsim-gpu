@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from qsim import gates
-from qsim.gates import Matrix
+from qsimgpu import gates
+from qsimgpu.gates import Matrix
 
 
 @dataclass(frozen=True, eq=False)
