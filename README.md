@@ -177,11 +177,24 @@ H₂ VQE (chemical accuracy is 1.6e-3 Ha):
 
 <!-- report:end -->
 
+## Install
+
+Not on PyPI yet; install from the repository. The core needs only NumPy; extras add the rest:
+
+```bash
+pip install "qsim-gpu @ git+https://github.com/HiteshGhanchi/qsim-gpu"              # CPU only
+pip install "qsim-gpu[gpu-cuda12,vqe] @ git+https://github.com/HiteshGhanchi/qsim-gpu"  # + GPU, VQE
+```
+
+Pick `gpu-cuda12` or `gpu-cuda13` to match the CUDA version `nvidia-smi` shows for your driver
+(Colab's current runtime is CUDA 13). Other extras: `vqe` (scipy), `compare` (Qiskit, Aer),
+`chem` (PySCF, OpenFermion, only for regenerating Hamiltonians), `dev` (tests and tools).
+
 ## Run it
 
 ```bash
 uv venv --python 3.14 .venv
-uv pip install --python .venv/bin/python -e ".[dev,compare]" "cupy-cuda12x[ctk]"
+uv pip install --python .venv/bin/python -e ".[dev,compare,gpu-cuda12]"
 
 .venv/bin/pytest -m "not gpu"        # CPU tests (run anywhere)
 .venv/bin/pytest -m gpu              # GPU tests (NVIDIA GPU + CuPy)

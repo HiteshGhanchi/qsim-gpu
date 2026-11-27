@@ -4,20 +4,36 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qsim-gpu"
-version = "0.1.0"
+version = "0.2.0"
 description = "A from-scratch GPU statevector quantum circuit simulator, validated against NumPy and Qiskit Aer."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
+keywords = ["quantum", "quantum-computing", "simulator", "statevector", "cuda", "gpu", "vqe"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
 dependencies = [
     "numpy>=2.0",
-    "scipy>=1.13",
-    "matplotlib>=3.8",
 ]
 
+[project.urls]
+Repository = "https://github.com/HiteshGhanchi/qsim-gpu"
+Changelog = "https://github.com/HiteshGhanchi/qsim-gpu/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
-gpu = ["cupy-cuda12x"]
-dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.6", "mypy>=1.10"]
+vqe = ["scipy>=1.13"]
+# Pick the CuPy build that matches your NVIDIA driver's CUDA major version (`nvidia-smi`).
+# The [ctk] extra brings the CUDA headers that run-time kernel compilation needs.
+gpu-cuda12 = ["cupy-cuda12x[ctk]"]
+gpu-cuda13 = ["cupy-cuda13x[ctk]"]
+gpu = ["cupy-cuda12x[ctk]"]  # kept for older install commands; same as gpu-cuda12
+dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.6", "mypy>=1.10", "scipy>=1.13", "build>=1.2"]
 compare = ["qiskit>=1.0", "qiskit-aer>=0.15"]
 chem = ["pyscf>=2.6", "openfermion>=1.6"]
 
@@ -25,6 +41,7 @@ chem = ["pyscf>=2.6", "openfermion>=1.6"]
 include = ["qsimgpu*"]
 
 [tool.setuptools.package-data]
+"qsimgpu" = ["py.typed"]
 "qsimgpu.kernels" = ["*.cu", "*.cuh"]
 
 [tool.pytest.ini_options]

@@ -414,3 +414,20 @@ from it.
 - `qsimgpu/interop/qiskit.py` (optional): `to_qiskit` (conditions become `if_test` blocks),
   `from_qiskit` (through OpenQASM 2) and `from_qasm3` (through `qiskit.qasm3`, which needs
   `qiskit-qasm3-import`). `tests/qiskit_bridge.py` now only keeps the Aer helper.
+
+## W5 result: packaging (2026-11-27)
+
+- Version 0.2.0 with `CHANGELOG.md` (semantic versioning). Core install = NumPy only; `import qsimgpu`
+  loads neither CuPy nor scipy (tested in a subprocess). Extras: `vqe`, `gpu-cuda12`, `gpu-cuda13`
+  (`gpu` kept as CUDA 12), `compare`, `chem`, `dev`. matplotlib dropped (OQ15). VQE raises a clear
+  error naming the `vqe` extra if scipy is missing.
+- The CuPy wheels: `cupy-cuda12x` stays right for CUDA 12 drivers. Colab's current runtime ships
+  CUDA 13 and `cupy-cuda13x` (checked 2026-11-27), hence the separate `gpu-cuda13` extra. Both
+  include the `[ctk]` headers that kernel compilation needs.
+- Public API in `qsimgpu/__init__.py` (`__all__`); `CudaBackend` is loaded on first use. `py.typed` is shipped.
+- CI builds the wheel, checks it contains the kernels and `py.typed`, installs it into a clean
+  environment and runs a Bell circuit (`scripts/check_wheel.py`). Checked locally too: the wheel has
+  32 files, and neither it nor the sdist contains any untracked local files.
+- `release.yml`: a `v*` tag publishes to TestPyPI; real PyPI only when started by hand. Both use
+  trusted publishing, which the owner must enable once on test.pypi.org and pypi.org (publisher =
+  this repository + `release.yml`, environments `testpypi` and `pypi`). No tokens in the repository.

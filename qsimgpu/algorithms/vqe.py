@@ -211,7 +211,10 @@ def energy_function(backend: Backend, terms: Terms,
 
 def minimise(energy: Callable[[NDArray[Any]], float], theta0: NDArray[Any],
              fd_step: float = 1e-5) -> tuple[NDArray[Any], float, int]:
-    from scipy.optimize import minimize
+    try:
+        from scipy.optimize import minimize
+    except ImportError as exc:
+        raise ImportError("VQE's optimiser needs scipy: pip install 'qsim-gpu[vqe]'") from exc
 
     res = minimize(energy, theta0, method="L-BFGS-B",
                    options={"eps": fd_step, "ftol": 1e-12, "gtol": 1e-8, "maxiter": 500})

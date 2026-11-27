@@ -46,10 +46,14 @@ If you know web backends, a rough mapping:
 
 | File | What and why |
 |---|---|
-| `pyproject.toml` | Package definition (like `package.json`). Optional extras: `gpu` (CuPy), `dev` (pytest, hypothesis, ruff, mypy), `compare` (Qiskit, Aer), `chem` (PySCF, OpenFermion, only for the offline data script). Strict mypy and ruff settings live here too. |
+| `pyproject.toml` | Package definition (like `package.json`), distribution name `qsim-gpu`, import name `qsimgpu`. Core dependency: NumPy only. Extras: `vqe` (scipy), `gpu-cuda12` / `gpu-cuda13` (CuPy with CUDA headers; `gpu` = CUDA 12), `compare` (Qiskit, Aer), `chem` (PySCF, OpenFermion, only for the offline data script), `dev`. Strict mypy and ruff settings live here too. |
+| `qsimgpu/__init__.py` | the public API (`Circuit`, `Gate`, `NumpyBackend`, `CudaBackend` loaded lazily, `from_qasm2`, `to_qasm2`, `run_shots`, `fuse`, `views`, `algorithms`); everything else is internal. `py.typed` marks the package as typed. |
 | `README.md` | What the project is, results with their caveats, how to run it, limitations. |
 | `LICENSE` | MIT. |
-| `.github/workflows/ci.yml` | GitHub Actions runs lint, type check and the CPU tests on Python 3.12 and 3.14. Free runners have no GPU, so GPU tests are skipped there (they skip themselves). |
+| `CHANGELOG.md` | what changed in each version (semantic versioning) |
+| `.github/workflows/release.yml` | tag `v*` → build, check and publish to TestPyPI; real PyPI only when started by hand; trusted publishing, no tokens |
+| `scripts/check_wheel.py` | checks a built wheel contains the kernels and `py.typed`, installs it in a clean environment and runs a Bell circuit |
+| `.github/workflows/ci.yml` | GitHub Actions runs lint, type check and the CPU tests on Python 3.12 and 3.14, and builds the wheel and installs it in a clean environment. Free runners have no GPU, so GPU tests are skipped there (they skip themselves). |
 | `.gitignore` | Virtual environments and tool caches. |
 
 ### `qsimgpu/gates.py`, the gate catalogue
