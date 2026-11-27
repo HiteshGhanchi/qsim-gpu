@@ -121,12 +121,20 @@ If you know web backends, a rough mapping:
 |---|---|
 | `common.cuh` | `cplx` (complex<float> or complex<double>), 64-bit `idx_t`, and `insert_zero_bits` |
 | `gates.cu` | `copy_state` (bandwidth yardstick), `apply_1q` (general 2×2), `apply_k1`…`apply_k5` (general 2^k×2^k, one compiled version per k), `apply_phase`, `apply_diag`, `apply_x`, `apply_swap` |
-| `measure.cu` | `chunk_prob_sums`, `locate_in_chunk` (two-pass sampling) |
+| `measure.cu` | `chunk_prob_sums`, `locate_in_chunk` (two-pass sampling), `marginal_probs` (marginal distributions) |
 | `expect.cu` | `pauli_partial` (Pauli expectation partial sums per block) |
 | `__init__.py` | `build_source(file, dtype)`: prepends `typedef float real_t;` or `typedef double real_t;` plus the common header. The same source builds both precisions, so the precision study compares identical code. |
 
 All kernels use **grid-stride loops** (each thread handles items t, t + stride, …), so one
 launch shape works for any problem size.
+
+### `qsimgpu/views.py`, what a front end shows
+`marginal_probabilities` (distribution of up to 12 chosen qubits; on the GPU a reduction kernel
+with a shared-memory histogram, so the state is never copied to the host), `bloch_vector`
+(three Pauli expectations), `entanglement_hint` (Bloch length; only meaningful while the whole
+state is pure), `snapshot` (refuses large states), and `step_trace`, which runs a circuit with the
+`on_step` hook and records these views after every gate as versioned JSON (`trace_version: 1`).
+`Backend.run(circuit, on_step=...)` calls the hook after each gate with (index, gate, backend).
 
 ### `qsimgpu/passes/fusion.py`
 `fuse(circuit, max_qubits=m)` walks the gates in order and grows a block while the union of
@@ -162,6 +170,7 @@ typed by hand.
 | `test_cuda_backend.py` | GPU vs explicit matrices and vs oracle, both kernel paths, sampling chi-square, expectations |
 | `test_algorithms.py` | GHZ, H-H, Grover, QFT, Shor on both backends |
 | `test_fusion.py` | fused circuit = unfused circuit, m = 1..5, CPU and GPU |
+| `test_views.py` | `on_step` order and count, marginal bit order, Bloch vectors of known states, trace format, NumPy vs CUDA traces |
 | `test_vqe.py` | Pauli rotations, UCCSD generators, data cross-checks, chemical accuracy over the grid |
 
 ### `bench/`
@@ -179,6 +188,7 @@ typed by hand.
 | `run_b7_compare.py` | B7: same circuits on qsim, Aer CPU/GPU, cuStateVec |
 | `run_b8_scale.py` | B8: grow n until out of memory |
 | `run_vqe_h2.py` | the H₂ energy curve |
+| `run_step_overhead.py` | cost of the `on_step` hook and of traces; NumPy vs CUDA agreement of views |
 | `run_all.py` | everything above in order (`--big` for a 16 GB GPU) |
 | `report.py` | writes the README result tables from the JSON files (refuses files marked suspect) |
 | `results/<gpu>/*.json` | every measured number, one folder per GPU, each with its environment record |

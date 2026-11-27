@@ -22,5 +22,10 @@ NORM_ATOL_COMPLEX64 = 1e-5
 EXPECT_ATOL_COMPLEX64 = 1e-5
 EXPECT_ATOL_COMPLEX128 = 1e-10
 
+# Views on the GPU (marginal probabilities, Bloch vectors, step traces) vs the complex128
+# oracle. Measured worst case: 2.4e-7 over 20 random 10-qubit traces, 8.2e-11 for marginals of
+# 20-qubit states (bench/results/<gpu>/w2_steps.json, RTX 3050 Laptop). 1e-5 keeps a ~40x margin.
+VIEW_ATOL_COMPLEX64 = 1e-5
+
 # Chemical accuracy in Hartree: the VQE acceptance bound
 CHEMICAL_ACCURACY = 1.6e-3

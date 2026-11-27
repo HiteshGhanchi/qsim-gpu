@@ -202,6 +202,17 @@ print(sim.statevector())          # [0.707, 0, 0, 0.707]
 print(sim.sample(1000, seed=1))   # only 0 (|00>) and 3 (|11>)
 ```
 
+Step-by-step views, for front ends that show the state after every gate:
+
+```python
+from qsimgpu import views
+
+views.bloch_vector(sim, 0)              # (<X>, <Y>, <Z>) of qubit 0: (0, 0, 0) for half a Bell pair
+views.marginal_probabilities(sim, [1])  # distribution of chosen qubits, reduced on the GPU
+trace = views.step_trace(CudaBackend(2), bell)   # JSON-ready: probabilities + Bloch vectors per step
+sim.run(bell, on_step=lambda i, gate, backend: print(i, gate.name))
+```
+
 `scripts/gpu_cloud_run.sh` runs the tests and all benchmarks on a cloud GPU: on a free Kaggle T4
 with `python scripts/kaggle_run.py push`, or on Colab with `notebooks/colab_run.ipynb`.
 `python -m bench.report` then rewrites the result tables in this README from the JSON files.

@@ -8,13 +8,19 @@ synchronisation between threads.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from functools import cache
 from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 
-from qsimgpu.backends.base import check_basis_state, pauli_masks
+from qsimgpu.backends.base import (
+    StepCallback,
+    check_basis_state,
+    check_marginal_qubits,
+    pauli_masks,
+)
 from qsimgpu.circuit import Circuit, Gate
 from qsimgpu.kernels import build_source
 
@@ -69,6 +75,7 @@ class CudaBackend:
         self.specialized = specialized
         self._k_chunk_sums = m.get_function("chunk_prob_sums")
         self._k_locate = m.get_function("locate_in_chunk")
+        self._k_marginal = m.get_function("marginal_probs")
         self._k_pauli = e.get_function("pauli_partial")
         self.reset()
 
@@ -192,11 +199,27 @@ class CudaBackend:
         else:
             self.apply_kq_matrix(gate.target_matrix(), gate.targets, gate.controls)
 
-    def run(self, circuit: Circuit) -> None:
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
         if circuit.n_qubits != self.n_qubits:
             raise ValueError(f"circuit has {circuit.n_qubits} qubits, backend {self.n_qubits}")
-        for g in circuit:
+        for i, g in enumerate(circuit):
             self.apply(g)
+            if on_step is not None:
+                on_step(i, g, self)
+
+    def marginal_probabilities(self, qubits: Sequence[int]) -> NDArray[np.float64]:
+        """Marginal distribution of up to 12 qubits, reduced on the GPU (no full host copy)."""
+        cp = self._cp
+        qs = check_marginal_qubits(qubits, self.n_qubits)
+        k = len(qs)
+        out = cp.zeros(1 << k, dtype=cp.float64)
+        n_amp = 1 << self.n_qubits
+        blocks = max(1, min(REDUCE_BLOCKS, (n_amp + BLOCK - 1) // BLOCK))
+        self._k_marginal((blocks,), (BLOCK,),
+                         (self._psi, np.int64(n_amp), np.int32(k),
+                          cp.asarray(np.array(qs, dtype=np.int32)), out),
+                         shared_mem=8 * (1 << k))
+        return out.get()  # type: ignore[no-any-return]
 
     # --- measurement -------------------------------------------------------------
     def sample(self, shots: int, seed: int | None = None) -> dict[int, int]:

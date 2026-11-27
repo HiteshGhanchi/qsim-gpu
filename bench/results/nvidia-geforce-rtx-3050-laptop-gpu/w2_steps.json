@@ -1,0 +1,107 @@
+{
+  "benchmark": "w2_steps",
+  "suspect": false,
+  "environment": {
+    "timestamp_utc": "2026-11-27T11:44:16+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "1a923fe-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "1500 MHz",
+        "current_mem_clock": "5870 MHz",
+        "power_draw": "16.77 W",
+        "temperature_c": "66",
+        "clock_event_reasons": "0x0000000000000000",
+        "pcie_gen": "4"
+      },
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "bandwidth_check": {
+      "copy_64MiB_GBps": 172.93246607148504,
+      "suspect": false,
+      "published_GBps": null
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "cupy-cuda13x": null,
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "cuquantum-python-cu13": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "on_step_overhead": [
+    {
+      "backend": "numpy",
+      "n": 10,
+      "gates": 20,
+      "plain_ms": 0.2751560004981002,
+      "with_on_step_ms": 0.27398599922889844,
+      "overhead_us_per_gate": -0.058500063460087404
+    },
+    {
+      "backend": "cuda",
+      "n": 10,
+      "gates": 20,
+      "plain_ms": 0.21490700055437628,
+      "with_on_step_ms": 0.20438899991859216,
+      "overhead_us_per_gate": -0.525900031789206
+    },
+    {
+      "backend": "numpy",
+      "n": 16,
+      "gates": 200,
+      "plain_ms": 47.44734000087192,
+      "with_on_step_ms": 48.93533500035119,
+      "overhead_us_per_gate": 7.439974997396348
+    },
+    {
+      "backend": "cuda",
+      "n": 16,
+      "gates": 200,
+      "plain_ms": 2.5595009992684936,
+      "with_on_step_ms": 2.528797000195482,
+      "overhead_us_per_gate": -0.153519995365059
+    },
+    {
+      "backend": "numpy",
+      "n": 20,
+      "gates": 200,
+      "plain_ms": 5488.962003999404,
+      "with_on_step_ms": 5842.995707998853,
+      "overhead_us_per_gate": 1770.1685199972417
+    },
+    {
+      "backend": "cuda",
+      "n": 20,
+      "gates": 200,
+      "plain_ms": 11.474135999378632,
+      "with_on_step_ms": 11.484276999908616,
+      "overhead_us_per_gate": 0.05070500264992006
+    }
+  ],
+  "step_trace_ms": {
+    "numpy": 30.449779000264243,
+    "cuda": 65.2485370010254
+  },
+  "trace_max_abs_diff": 2.4300349210637506e-07,
+  "marginal_max_abs_diff_n20": 8.217437841295805e-11
+}

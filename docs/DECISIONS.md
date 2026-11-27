@@ -357,3 +357,18 @@ from it.
   name now falls back to the `nvidia-smi` GPU name, and the two files were moved to `tesla-t4/`
   (their recorded environment shows Tesla T4).
 - The Kaggle image prints a harmless `sitecustomize` warning (`wrapt` missing) inside the uv environments.
+
+## W2 result: step-by-step execution and state views (2026-11-27)
+
+- `Backend.run(circuit, on_step=None)` on both backends; `qsimgpu/views.py` with
+  `marginal_probabilities`, `bloch_vector`, `entanglement_hint`, `snapshot`, `step_trace`
+  (`trace_version: 1`) and `trace_max_difference`. New CUDA kernel `marginal_probs`.
+- Measured on the RTX 3050 Laptop (`bench/results/nvidia-geforce-rtx-3050-laptop-gpu/w2_steps.json`):
+  the `on_step` hook with an empty callback costs nothing measurable (±0.5 µs per gate on the GPU,
+  within run-to-run noise). A full trace of a 20-gate, 10-qubit circuit takes 30 ms on NumPy and
+  65 ms on the GPU: at 10 qubits each of the 30 Bloch-vector passes per step is dominated by launch
+  overhead, so the GPU only pays off for larger states.
+- NumPy vs CUDA: traces differ by at most 2.4e-7 (20 random circuits), and marginals of 20-qubit
+  states by 8.2e-11. New tolerance `VIEW_ATOL_COMPLEX64 = 1e-5`.
+- Later list: a single kernel for all three Bloch components of all qubits (one pass instead of 3n)
+  would make GPU traces faster.

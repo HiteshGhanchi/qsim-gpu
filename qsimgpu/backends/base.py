@@ -7,6 +7,7 @@ So for "XIZY": qubit 3 = X, qubit 2 = I, qubit 1 = Z, qubit 0 = Y.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
@@ -15,6 +16,10 @@ if TYPE_CHECKING:
     from qsimgpu.circuit import Circuit, Gate
 
 PAULI_CHARS = frozenset("IXYZ")
+MAX_MARGINAL_QUBITS = 12  # marginal distributions have 2^k entries; 12 -> 4096
+
+# Called after every gate by Backend.run: (gate index, gate, backend).
+StepCallback = Callable[[int, "Gate", "Backend"], None]
 
 
 @runtime_checkable
@@ -29,8 +34,17 @@ class Backend(Protocol):
         """Apply one gate in place."""
         ...
 
-    def run(self, circuit: Circuit) -> None:
-        """Apply all gates of the circuit in order, in place."""
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
+        """Apply all gates of the circuit in order, in place.
+
+        If on_step is given it is called after every gate with (index, gate, backend), so a
+        caller can inspect the state between gates. The circuit is run exactly as given;
+        apply fusion beforehand only if per-gate steps are not needed.
+        """
+        ...
+
+    def marginal_probabilities(self, qubits: Sequence[int]) -> np.ndarray:
+        """Probabilities of the 2^k outcomes of `qubits` (bit j of the index = qubits[j])."""
         ...
 
     def statevector(self) -> np.ndarray:
@@ -84,6 +98,19 @@ def pauli_masks(pauli: str, n_qubits: int) -> tuple[int, int, int]:
         if ch == "Y":
             n_y += 1
     return x_mask, z_mask, n_y
+
+
+def check_marginal_qubits(qubits: Sequence[int], n_qubits: int) -> tuple[int, ...]:
+    qs = tuple(int(q) for q in qubits)
+    if not qs:
+        raise ValueError("marginal_probabilities needs at least one qubit")
+    if len(set(qs)) != len(qs):
+        raise ValueError(f"qubits must be distinct, got {qs}")
+    if any(not 0 <= q < n_qubits for q in qs):
+        raise ValueError(f"qubits {qs} out of range for {n_qubits} qubits")
+    if len(qs) > MAX_MARGINAL_QUBITS:
+        raise ValueError(f"at most {MAX_MARGINAL_QUBITS} qubits per marginal, got {len(qs)}")
+    return qs
 
 
 def check_basis_state(basis_state: int, n_qubits: int) -> None:

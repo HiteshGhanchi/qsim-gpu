@@ -13,11 +13,18 @@ Goal: obviously correct, not fast.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 from numpy.typing import NDArray
 
 from qsimgpu import gates
-from qsimgpu.backends.base import check_basis_state, check_pauli
+from qsimgpu.backends.base import (
+    StepCallback,
+    check_basis_state,
+    check_marginal_qubits,
+    check_pauli,
+)
 from qsimgpu.circuit import Circuit, Gate
 
 _PAULI = {
@@ -86,11 +93,22 @@ class NumpyBackend:
             raise ValueError(f"{gate.name}: qubit(s) {bad} out of range")
         self.apply_matrix(gate.target_matrix(), gate.targets, gate.controls)
 
-    def run(self, circuit: Circuit) -> None:
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
         if circuit.n_qubits != self.n_qubits:
             raise ValueError(f"circuit has {circuit.n_qubits} qubits, backend {self.n_qubits}")
-        for g in circuit:
+        for i, g in enumerate(circuit):
             self.apply(g)
+            if on_step is not None:
+                on_step(i, g, self)
+
+    def marginal_probabilities(self, qubits: Sequence[int]) -> NDArray[np.float64]:
+        """Sum |amplitude|^2 over every pattern, grouped by the bits of `qubits`."""
+        qs = check_marginal_qubits(qubits, self.n_qubits)
+        idx = np.arange(1 << self.n_qubits)
+        outcome = np.zeros_like(idx)
+        for j, q in enumerate(qs):
+            outcome |= ((idx >> q) & 1) << j
+        return np.bincount(outcome, weights=self.probabilities(), minlength=1 << len(qs))
 
     # --- measurement -------------------------------------------------------------
     def sample(self, shots: int, seed: int | None = None) -> dict[int, int]:
