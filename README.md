@@ -224,6 +224,16 @@ bits = CudaBackend(2).run(c, rng=42)           # same seed -> same bits on every
 counts = run_shots(CudaBackend(2), c, shots=1000, seed=1)   # {0b00: ~500, 0b11: ~500}
 ```
 
+Bring your own circuits as OpenQASM 2 (hand-written parser, no extra dependency):
+
+```python
+from qsimgpu.qasm import from_qasm2, to_qasm2
+
+circuit = from_qasm2(open("my_circuit.qasm").read())   # errors name the line and column
+print(to_qasm2(circuit))
+# With qiskit installed: qsimgpu.interop.qiskit.from_qiskit / to_qiskit / from_qasm3
+```
+
 `scripts/gpu_cloud_run.sh` runs the tests and all benchmarks on a cloud GPU: on a free Kaggle T4
 with `python scripts/kaggle_run.py push`, or on Colab with `notebooks/colab_run.ipynb`.
 `python -m bench.report` then rewrites the result tables in this README from the JSON files.

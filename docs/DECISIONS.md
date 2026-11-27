@@ -390,3 +390,27 @@ from it.
 - Cost (`bench/results/nvidia-geforce-rtx-3050-laptop-gpu/w3_shots.json`, 12 qubits, 60 gates,
   1000 shots): measurement only at the end takes 1.6 ms (NumPy) / 1.7 ms (GPU). One mid-circuit
   measurement forces a re-run per shot: 1687 ms / 1559 ms.
+
+## W4 result: OpenQASM 2 import and export (2026-11-27)
+
+- `qsimgpu/qasm.py`: hand-written tokenizer and recursive-descent parser, `from_qasm2` / `to_qasm2`.
+  No new dependency.
+- New named gates `u` (Qiskit U = OpenQASM u3), `sx`, `sxdg`, tested against Qiskit's matrices and
+  on both backends' kernels. Mapping: u1 → p, u2 → u(π/2, φ, λ), cu1 → cp, controlled forms → base
+  gate plus a control, rzz/rxx → exact decompositions. `id`, `u0` and `barrier` are dropped on
+  purpose, since they don't change the state.
+- Qiskit writes OpenQASM 2 against an extended qelib1.inc that declares, without defining, u0, cu,
+  c3x, c3sqrtx, c4x, rccx and rc3x. These are built in (rccx/rc3x by their standard gate sequences),
+  and each is checked against Qiskit's own matrix.
+- Expression precedence follows ordinary maths (`-pi^2 = -(pi^2)`, `2^-1 = 0.5`). An earlier draft
+  had unary minus binding tighter than `^`; a test caught it.
+- Export uses qelib1 names and raises `QasmExportError` for `unitary` gates, more than one control
+  (except ccx and cswap), and conditions that aren't a whole classical register.
+- Tests: exact round trips (`to_qasm2` → `from_qasm2` gives identical gates), 22 OpenQASM files
+  generated with MQT Bench 2.4.0 (MIT) in `tests/data/qasm/`, and 15 random Qiskit circuits, all
+  matching Qiskit's statevector. The comparison allows a global phase, because Qiskit's own
+  custom-gate definitions can drop one when written as OpenQASM 2. Malformed inputs produce errors
+  with the right line.
+- `qsimgpu/interop/qiskit.py` (optional): `to_qiskit` (conditions become `if_test` blocks),
+  `from_qiskit` (through OpenQASM 2) and `from_qasm3` (through `qiskit.qasm3`, which needs
+  `qiskit-qasm3-import`). `tests/qiskit_bridge.py` now only keeps the Aer helper.

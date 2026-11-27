@@ -128,6 +128,16 @@ If you know web backends, a rough mapping:
 All kernels use **grid-stride loops** (each thread handles items t, t + stride, …), so one
 launch shape works for any problem size.
 
+### `qsimgpu/qasm.py` and `qsimgpu/interop/qiskit.py`, circuits in and out
+A hand-written OpenQASM 2 tokenizer and recursive-descent parser: registers (flattened in
+declaration order), the qelib1 gates plus the extra ones Qiskit writes against, `gate` definitions
+expanded like macros, parameter expressions (precedence as in maths: `-pi^2` is `-(pi^2)`),
+`measure`, `reset`, `barrier`, `if (creg == value)`, and broadcasting over whole registers. Every
+error carries a line and column; nothing unknown is skipped (`id` and `barrier` are dropped on
+purpose because they don't change the state). `to_qasm2` writes qelib1 names and refuses what
+OpenQASM 2 can't express. `interop/qiskit.py` converts to and from Qiskit (optional dependency)
+and reads OpenQASM 3 through Qiskit.
+
 ### `qsimgpu/execution.py`, measurement and classical control
 `run_circuit` is the single loop behind every backend's `run`: unitary gates go to `apply`,
 conditional gates are skipped unless the classical register matches, `measure` draws one random
@@ -183,6 +193,7 @@ typed by hand.
 | `test_cuda_backend.py` | GPU vs explicit matrices and vs oracle, both kernel paths, sampling chi-square, expectations |
 | `test_algorithms.py` | GHZ, H-H, Grover, QFT, Shor on both backends |
 | `test_fusion.py` | fused circuit = unfused circuit, m = 1..5, CPU and GPU |
+| `test_qasm.py` | parsing, gate mapping, expressions, gate definitions, error positions, exact round trips, 22 MQT Bench files and random Qiskit circuits against Aer |
 | `test_measurement.py` | measure/reset/condition IR, 50/50 binomial test on \|+⟩, collapse and reset, identical bits on NumPy and CUDA, shots, teleportation, bit-flip code |
 | `test_views.py` | `on_step` order and count, marginal bit order, Bloch vectors of known states, trace format, NumPy vs CUDA traces |
 | `test_vqe.py` | Pauli rotations, UCCSD generators, data cross-checks, chemical accuracy over the grid |

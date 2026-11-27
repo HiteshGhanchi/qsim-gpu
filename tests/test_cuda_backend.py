@@ -210,13 +210,17 @@ def test_host_copy_refused_above_limit() -> None:
 @pytest.mark.parametrize("n", [1, 2, 3, 6])
 def test_every_gate_matches_explicit_matrix_in_both_modes(n: int, specialized: bool) -> None:
     rng = np.random.default_rng(99 + n)
-    names = ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "p"]
+    names = ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "p", "sx", "sxdg", "u"]
     for trial in range(40):
         qs = [int(q) for q in rng.permutation(n)]
         name = str(rng.choice(names + (["swap"] if n >= 2 else [])))
         n_targets = 2 if name == "swap" else 1
         n_ctrl = int(rng.integers(0, n - n_targets + 1))
-        params = (float(rng.uniform(-3, 3)),) if name in ("rx", "ry", "rz", "p") else ()
+        params: tuple[float, ...] = ()
+        if name in ("rx", "ry", "rz", "p"):
+            params = (float(rng.uniform(-3, 3)),)
+        elif name == "u":
+            params = tuple(float(x) for x in rng.uniform(-3, 3, 3))
         g = Gate(name, tuple(qs[:n_targets]), tuple(qs[n_targets : n_targets + n_ctrl]), params)
         psi = random_state(n, 900 + trial)
         b = cuda(n, np.complex128, specialized)

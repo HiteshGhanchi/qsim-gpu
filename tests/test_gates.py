@@ -60,6 +60,30 @@ def test_inverse_matrix(name: str, params: tuple[float, ...]) -> None:
                                atol=1e-14)
 
 
+@pytest.mark.parametrize("params", [(0.3, -1.1, 2.0), (math.pi, 0.0, math.pi), (0.0, 0.5, 0.2)])
+def test_u_gate_is_unitary_and_inverts(params: tuple[float, float, float]) -> None:
+    g = Gate("u", (0,), params=params)
+    assert gates.is_unitary(g.target_matrix())
+    np.testing.assert_allclose(g.inverse().target_matrix() @ g.target_matrix(), np.eye(2),
+                               atol=1e-14)
+
+
+def test_u_and_sx_match_qiskit_definitions() -> None:
+    np.testing.assert_allclose(gates.base_matrix("u", (math.pi, 0, math.pi)),
+                               gates.base_matrix("x"), atol=1e-15)          # U(pi,0,pi) = X
+    np.testing.assert_allclose(gates.base_matrix("u", (math.pi / 2, 0, math.pi)),
+                               gates.base_matrix("h"), atol=1e-15)          # U(pi/2,0,pi) = H
+    sx = gates.base_matrix("sx")
+    np.testing.assert_allclose(sx @ sx, gates.base_matrix("x"), atol=1e-15)
+    np.testing.assert_allclose(gates.base_matrix("sxdg"), sx.conj().T, atol=1e-15)
+    pytest.importorskip("qiskit")
+    from qiskit.circuit.library import SXGate, UGate
+
+    np.testing.assert_allclose(gates.base_matrix("sx"), SXGate().to_matrix(), atol=1e-15)
+    np.testing.assert_allclose(gates.base_matrix("u", (0.3, -1.1, 2.0)),
+                               UGate(0.3, -1.1, 2.0).to_matrix(), atol=1e-15)
+
+
 def test_gate_kinds() -> None:
     assert gates.SPECS["cz"].kind == "diagonal"
     assert gates.SPECS["ccx"].kind == "permutation"

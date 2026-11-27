@@ -158,6 +158,8 @@ class Circuit:
             raise ValueError("n_clbits must be >= 0")
         self.n_qubits = n_qubits
         self.n_clbits = n_clbits
+        # Optional names for groups of clbits (OpenQASM classical registers): name -> bits.
+        self.cregs: dict[str, tuple[int, ...]] = {}
         self.gates: list[Gate] = []
         for g in gate_list:
             self.append(g)
@@ -252,6 +254,16 @@ class Circuit:
 
     def p(self, phi: float, q: int) -> Circuit:
         return self.add("p", [q], params=[phi])
+
+    def sx(self, q: int) -> Circuit:
+        return self.add("sx", [q])
+
+    def sxdg(self, q: int) -> Circuit:
+        return self.add("sxdg", [q])
+
+    def u(self, theta: float, phi: float, lam: float, q: int) -> Circuit:
+        """Qiskit's U(theta, phi, lambda), the same as OpenQASM 2's u3."""
+        return self.add("u", [q], params=[theta, phi, lam])
 
     # --- multi-qubit builders (argument order follows Qiskit: controls first) ----
     def cx(self, control: int, target: int) -> Circuit:

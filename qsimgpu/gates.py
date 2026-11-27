@@ -51,6 +51,9 @@ SPECS: dict[str, GateSpec] = {
     "ry": GateSpec(1, None, 1, "ry", "general"),
     "rz": GateSpec(1, None, 1, "rz", "diagonal"),
     "p": GateSpec(1, None, 1, "p", "diagonal"),
+    "sx": GateSpec(1, None, 0, "sx", "general"),      # square root of X (IBM hardware gate)
+    "sxdg": GateSpec(1, None, 0, "sxdg", "general"),
+    "u": GateSpec(1, None, 3, "u", "general"),        # Qiskit U(theta, phi, lambda) = OpenQASM u3
     "cx": GateSpec(1, 1, 0, "x", "permutation"),
     "cz": GateSpec(1, 1, 0, "z", "diagonal"),
     "cp": GateSpec(1, 1, 1, "p", "diagonal"),
@@ -84,6 +87,8 @@ _FIXED: dict[str, Matrix] = {
     "t": _phase(math.pi / 4),
     "tdg": _phase(-math.pi / 4),
     "swap": _m([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]),
+    "sx": 0.5 * _m([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]),
+    "sxdg": 0.5 * _m([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]),
 }
 
 
@@ -91,6 +96,11 @@ def base_matrix(base: str, params: tuple[float, ...] = ()) -> Matrix:
     """Matrix of a base gate (no controls). `base` is a GateSpec.base name, not "unitary"."""
     if base in _FIXED:
         return _FIXED[base].copy()
+    if base == "u":
+        theta, phi, lam = params
+        c, s = math.cos(theta / 2), math.sin(theta / 2)
+        return _m([[c, -np.exp(1j * lam) * s],
+                   [np.exp(1j * phi) * s, np.exp(1j * (phi + lam)) * c]])
     (theta,) = params
     c, s = math.cos(theta / 2), math.sin(theta / 2)
     if base == "rx":
@@ -105,7 +115,7 @@ def base_matrix(base: str, params: tuple[float, ...] = ()) -> Matrix:
 
 
 _SELF_INVERSE = {"h", "x", "y", "z", "cx", "cz", "ccx", "swap"}
-_SWAP_INVERSE = {"s": "sdg", "sdg": "s", "t": "tdg", "tdg": "t"}
+_SWAP_INVERSE = {"s": "sdg", "sdg": "s", "t": "tdg", "tdg": "t", "sx": "sxdg", "sxdg": "sx"}
 _NEGATE_ANGLE = {"rx", "ry", "rz", "p", "cp"}
 
 
@@ -117,6 +127,9 @@ def inverse_name_params(name: str, params: tuple[float, ...]) -> tuple[str, tupl
         return _SWAP_INVERSE[name], params
     if name in _NEGATE_ANGLE:
         return name, tuple(-p for p in params)
+    if name == "u":  # U(t, p, l)^-1 = U(-t, -l, -p)
+        theta, phi, lam = params
+        return name, (-theta, -lam, -phi)
     raise ValueError(f"no inverse rule for {name!r}")
 
 
