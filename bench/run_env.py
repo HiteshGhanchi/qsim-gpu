@@ -43,7 +43,8 @@ SUSPECT_FRACTION = 0.5
 def gpu_slug(name: str | None = None) -> str:
     """Folder name for a GPU, e.g. 'Tesla T4' -> 'tesla-t4'. 'cpu-only' without a GPU."""
     if name is None:
-        name = str(_gpu_info().get("name", "cpu-only"))
+        info = _gpu_info()  # CuPy's name, else nvidia-smi's (environments without CuPy)
+        name = str(info.get("name") or info.get("nvidia_smi_name") or "cpu-only")
     return "-".join("".join(c if c.isalnum() else " " for c in name.lower()).split())
 
 

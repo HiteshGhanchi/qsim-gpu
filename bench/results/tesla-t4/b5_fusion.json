@@ -1,0 +1,323 @@
+{
+  "benchmark": "b5_fusion",
+  "suspect": false,
+  "environment": {
+    "timestamp_utc": "2026-11-27T10:58:07+00:00",
+    "python": "3.13.16",
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "85221cd",
+    "gpu": {
+      "nvidia_smi_name": "Tesla T4",
+      "memory_total": "15360 MiB",
+      "driver": "580.178.04",
+      "max_sm_clock": "1590 MHz",
+      "max_mem_clock": "5001 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "1575 MHz",
+        "current_mem_clock": "5000 MHz",
+        "power_draw": "44.73 W",
+        "temperature_c": "77",
+        "clock_event_reasons": "0x0000000000000004",
+        "pcie_gen": "3"
+      },
+      "name": "Tesla T4",
+      "compute_capability": "7.5",
+      "total_memory_bytes": 15636037632,
+      "cuda_runtime": 13000,
+      "cuda_driver_api": 13000,
+      "nvrtc": "13.0"
+    },
+    "bandwidth_check": {
+      "copy_64MiB_GBps": 226.71913221329442,
+      "suspect": false,
+      "published_GBps": 320.0,
+      "published_source": "NVIDIA T4 Tensor Core product brief (2020): 'up to 320 GB/s'",
+      "fraction_of_published": 0.708497288166545
+    },
+    "nvcc": "Build cuda_13.0.r13.0/compiler.36424714_0",
+    "packages": {
+      "numpy": "2.1.3",
+      "scipy": "1.16.3",
+      "cupy-cuda12x": null,
+      "cupy-cuda13x": "14.0.1",
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "cuquantum-python-cu13": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "n": 24,
+  "dtype": "complex64",
+  "rows": [
+    {
+      "circuit": "qft",
+      "variant": "unfused, general kernels",
+      "passes": 312,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 235.58428399996956,
+        "min_ms": 235.5312509999976,
+        "max_ms": 235.72437500001797,
+        "all_ms": [
+          235.72437500001797,
+          235.58428399996956,
+          235.59749399998964,
+          235.5312509999976,
+          235.58406699999068
+        ]
+      },
+      "speedup_vs_unfused_general": 1.0
+    },
+    {
+      "circuit": "qft",
+      "variant": "unfused, specialised kernels",
+      "passes": 312,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 132.08487700001115,
+        "min_ms": 132.00219899999865,
+        "max_ms": 132.14010500001905,
+        "all_ms": [
+          132.09218800000144,
+          132.00219899999865,
+          132.02266899997994,
+          132.08487700001115,
+          132.14010500001905
+        ]
+      },
+      "speedup_vs_unfused_general": 1.7835825671393832
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=1",
+      "passes": 312,
+      "fusion_host_ms": 0.262347999978374,
+      "timing": {
+        "median_ms": 132.0441070000129,
+        "min_ms": 131.9806010000093,
+        "max_ms": 132.06770900001175,
+        "all_ms": [
+          132.06770900001175,
+          131.98485599997412,
+          131.9806010000093,
+          132.05226100001255,
+          132.0441070000129
+        ]
+      },
+      "speedup_vs_unfused_general": 1.7841332669238055
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=2",
+      "passes": 288,
+      "fusion_host_ms": 7.8018639999868356,
+      "timing": {
+        "median_ms": 122.58064500002774,
+        "min_ms": 122.53253599999425,
+        "max_ms": 122.5963670000283,
+        "all_ms": [
+          122.58834499999693,
+          122.58064500002774,
+          122.56628700004057,
+          122.5963670000283,
+          122.53253599999425
+        ]
+      },
+      "speedup_vs_unfused_general": 1.9218717930544111
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=3",
+      "passes": 155,
+      "fusion_host_ms": 81.958085999986,
+      "timing": {
+        "median_ms": 187.160643000027,
+        "min_ms": 187.1096829999601,
+        "max_ms": 187.30458700002828,
+        "all_ms": [
+          187.160643000027,
+          187.30458700002828,
+          187.1096829999601,
+          187.13597999999365,
+          187.20852900003138
+        ]
+      },
+      "speedup_vs_unfused_general": 1.2587276909490825
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=4",
+      "passes": 104,
+      "fusion_host_ms": 137.94921600003818,
+      "timing": {
+        "median_ms": 1394.4829540000114,
+        "min_ms": 1394.0710230000377,
+        "max_ms": 1395.018026999992,
+        "all_ms": [
+          1394.0710230000377,
+          1395.018026999992,
+          1394.8160499999744,
+          1394.4829540000114,
+          1394.2584039999701
+        ]
+      },
+      "speedup_vs_unfused_general": 0.16894023933688587
+    },
+    {
+      "circuit": "qft",
+      "variant": "fused m=5",
+      "passes": 76,
+      "fusion_host_ms": 244.60261500001934,
+      "timing": {
+        "median_ms": 2777.8926930000125,
+        "min_ms": 2776.465201999997,
+        "max_ms": 2780.0818540000023,
+        "all_ms": [
+          2780.0818540000023,
+          2777.8926930000125,
+          2779.1842369999813,
+          2776.465201999997,
+          2776.6758820000064
+        ]
+      },
+      "speedup_vs_unfused_general": 0.08480683382537285
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "unfused, general kernels",
+      "passes": 100,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 86.47553000002972,
+        "min_ms": 86.4262819999908,
+        "max_ms": 86.55135599997266,
+        "all_ms": [
+          86.4262819999908,
+          86.48875799997313,
+          86.55135599997266,
+          86.43230500001664,
+          86.47553000002972
+        ]
+      },
+      "speedup_vs_unfused_general": 1.0
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "unfused, specialised kernels",
+      "passes": 100,
+      "fusion_host_ms": 0.0,
+      "timing": {
+        "median_ms": 60.284018999993805,
+        "min_ms": 60.24092500001643,
+        "max_ms": 60.33976500003746,
+        "all_ms": [
+          60.33976500003746,
+          60.31675799999903,
+          60.284018999993805,
+          60.24092500001643,
+          60.271051000029274
+        ]
+      },
+      "speedup_vs_unfused_general": 1.4344685612291146
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=1",
+      "passes": 97,
+      "fusion_host_ms": 0.9369210000045314,
+      "timing": {
+        "median_ms": 59.219184000028235,
+        "min_ms": 59.202996000010444,
+        "max_ms": 59.24064800001361,
+        "all_ms": [
+          59.206959999983155,
+          59.24064800001361,
+          59.22707600001331,
+          59.219184000028235,
+          59.202996000010444
+        ]
+      },
+      "speedup_vs_unfused_general": 1.4602621002003082
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=2",
+      "passes": 79,
+      "fusion_host_ms": 4.903323999997156,
+      "timing": {
+        "median_ms": 50.59679099997538,
+        "min_ms": 50.57887399999572,
+        "max_ms": 50.658155999997234,
+        "all_ms": [
+          50.57887399999572,
+          50.59679099997538,
+          50.592388000040955,
+          50.64164800000981,
+          50.658155999997234
+        ]
+      },
+      "speedup_vs_unfused_general": 1.7091109592320153
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=3",
+      "passes": 60,
+      "fusion_host_ms": 15.330390000031002,
+      "timing": {
+        "median_ms": 49.31311899997581,
+        "min_ms": 49.2794760000379,
+        "max_ms": 49.332991999960996,
+        "all_ms": [
+          49.31311899997581,
+          49.332991999960996,
+          49.3159850000211,
+          49.2794760000379,
+          49.31251400000747
+        ]
+      },
+      "speedup_vs_unfused_general": 1.7536009028362642
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=4",
+      "passes": 44,
+      "fusion_host_ms": 31.096885000010843,
+      "timing": {
+        "median_ms": 281.22807199997624,
+        "min_ms": 281.0659840000085,
+        "max_ms": 281.3702149999813,
+        "all_ms": [
+          281.22807199997624,
+          281.3702149999813,
+          281.0659840000085,
+          281.11335299996654,
+          281.27092500000117
+        ]
+      },
+      "speedup_vs_unfused_general": 0.30749252514178965
+    },
+    {
+      "circuit": "random_d100",
+      "variant": "fused m=5",
+      "passes": 34,
+      "fusion_host_ms": 63.92396399996869,
+      "timing": {
+        "median_ms": 855.5362620000437,
+        "min_ms": 855.2351270000145,
+        "max_ms": 856.0861070000101,
+        "all_ms": [
+          856.0861070000101,
+          855.5474080000067,
+          855.5362620000437,
+          855.2351270000145,
+          855.2818200000161
+        ]
+      },
+      "speedup_vs_unfused_general": 0.10107757419641121
+    }
+  ]
+}

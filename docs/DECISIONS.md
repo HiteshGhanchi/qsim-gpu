@@ -335,3 +335,25 @@ matching the PyPI distribution name `qsim-gpu` (free on PyPI when checked on 202
 - README result tables are written by `python -m bench.report`, which refuses suspect files.
 - T4 runs go through Kaggle (`scripts/kaggle_run.py`) using the owner's own Kaggle CLI login; the
   key is never read or stored by the project.
+
+## W1 result: Tesla T4 run on Kaggle (2026-11-27)
+
+One private Kaggle run (T4, driver 580.178.04, CUDA runtime 13.0, Python 3.13.16, commit `85221cd`)
+ran the full suite: **343 passed, 1 skipped on the T4** (`bench/results/tesla-t4/test_log.txt`).
+Every result passed the bandwidth check (64 MiB copy at 195–236 GB/s, 61–74% of the published
+320 GB/s). Headline figures now come from `bench/results/tesla-t4/`; the README tables are generated
+from it.
+
+- **Capacity:** 30 qubits complex64, 29 complex128 (31 / 30 ran out of memory). This confirms the arithmetic.
+- **Efficiency:** H gate on 26 qubits 234 GB/s vs a 230 GB/s copy in the same run, so the copy kernel is a
+  yardstick rather than a hard ceiling (an in-place gate can be marginally faster than a two-buffer copy).
+- **Specialised kernels** about 2× where bytes halve; **fusion** best at width 2 (QFT 1.92×) or 3
+  (random 1.75×, 1.71× at width 2: within noise). Default stays 2.
+- **Comparison:** qsim faster than cuStateVec's general per-gate API from 20 qubits (1.3–2.2×), slower at 18;
+  faster than Aer GPU from 20 qubits (2.2–7.0×). Engines agree on ⟨Z0⟩ within 2.2e-7.
+- **Open anomaly:** complex128/complex64 time ratio is 3.6–3.9 at 20–24 qubits but 2.0 at 26. The power-cap
+  flag (0x4) was set during this benchmark. Not explained yet; to re-run in isolation.
+- **Tooling fix:** the Aer-GPU environment has no CuPy, so its results were filed under `cpu-only`. The folder
+  name now falls back to the `nvidia-smi` GPU name, and the two files were moved to `tesla-t4/`
+  (their recorded environment shows Tesla T4).
+- The Kaggle image prints a harmless `sitecustomize` warning (`wrapt` missing) inside the uv environments.
