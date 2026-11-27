@@ -17,7 +17,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 Matrix = NDArray[np.complex128]
-Kind = Literal["diagonal", "permutation", "general"]
+Kind = Literal["diagonal", "permutation", "general", "nonunitary"]
 
 
 @dataclass(frozen=True)
@@ -57,7 +57,11 @@ SPECS: dict[str, GateSpec] = {
     "ccx": GateSpec(1, 2, 0, "x", "permutation"),
     "swap": GateSpec(2, None, 0, "swap", "permutation"),
     "unitary": GateSpec(None, 0, 0, "unitary", "general"),
+    # Non-unitary operations: handled by Backend.run, never by a matrix kernel.
+    "measure": GateSpec(1, 0, 0, "measure", "nonunitary"),
+    "reset": GateSpec(1, 0, 0, "reset", "nonunitary"),
 }
+NONUNITARY = frozenset({"measure", "reset"})
 
 _SQ2 = 1.0 / math.sqrt(2.0)
 

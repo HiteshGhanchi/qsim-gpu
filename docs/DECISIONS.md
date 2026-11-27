@@ -372,3 +372,21 @@ from it.
   states by 8.2e-11. New tolerance `VIEW_ATOL_COMPLEX64 = 1e-5`.
 - Later list: a single kernel for all three Bloch components of all qubits (one pass instead of 3n)
   would make GPU traces faster.
+
+## W3 result: mid-circuit measurement, reset and classical conditions (2026-11-27)
+
+- IR: `Circuit(n, n_clbits=...)`, `measure(q, c)`, `reset(q)`, `c_if(clbits, value)` (a condition on
+  the most recent gate; bit j of the value = clbits[j]). `Gate` gained `clbits` and `condition`
+  fields; `inverse()` and fusion refuse to cross them.
+- `qsimgpu/execution.py`: the shared run loop, `run_shots`, `has_mid_circuit_measurement`.
+  `Backend.run` now returns the classical bits and takes `rng`; backends gained `measure_qubit`,
+  `reset_qubit` and a `classical_bits` attribute (recorded per step in traces).
+- GPU measurement reuses existing kernels: P(1) = (1 − ⟨Z⟩)/2 from the expectation kernel, and the
+  collapse is a single `apply_diag` pass.
+- Same bits on both backends: checked over 25 seeds on random circuits with 5 mid-circuit
+  measurements (`test_numpy_and_cuda_give_identical_bits_for_the_same_seed`).
+- Statistics: measuring |+⟩ 2000 times passes a two-sided exact binomial test at p > 1e-3.
+- New demos `teleport.py` and `bitflip.py`, both tested on both backends.
+- Cost (`bench/results/nvidia-geforce-rtx-3050-laptop-gpu/w3_shots.json`, 12 qubits, 60 gates,
+  1000 shots): measurement only at the end takes 1.6 ms (NumPy) / 1.7 ms (GPU). One mid-circuit
+  measurement forces a re-run per shot: 1687 ms / 1559 ms.

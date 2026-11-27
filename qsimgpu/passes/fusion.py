@@ -5,6 +5,9 @@ Every gate is one full pass over the state in memory. If gates 1..k only involve
 Fusion trades a little arithmetic (bigger matrices) for fewer passes over memory, which is
 the right trade when the simulator is memory-bound.
 
+Measure, reset and conditional gates are barriers: every open block is closed before them and
+they are emitted unchanged, so no gate ever moves across a measurement.
+
 The pass is greedy and keeps gate order: it grows a block while the union of qubits stays
 within max_qubits, and closes the block when the next gate would exceed it. A block of one
 gate is emitted unchanged, so the backend can still use its specialised kernel for it.
@@ -40,7 +43,7 @@ def fuse(circuit: Circuit, max_qubits: int = 2) -> Circuit:
     """Return an equivalent circuit where consecutive gates are merged into unitary gates."""
     if not 1 <= max_qubits <= 5:
         raise ValueError("max_qubits must be between 1 and 5 (largest kernel matrix is 32x32)")
-    out = Circuit(circuit.n_qubits)
+    out = Circuit(circuit.n_qubits, n_clbits=circuit.n_clbits)
     block: list[Gate] = []
     block_qubits: set[int] = set()
 
@@ -55,6 +58,10 @@ def fuse(circuit: Circuit, max_qubits: int = 2) -> Circuit:
 
     for g in circuit:
         qs = set(g.qubits)
+        if not g.is_unitary:  # measure, reset or conditional: a barrier nothing crosses
+            flush()
+            out.append(g)
+            continue
         if len(qs) > max_qubits:  # too wide to fuse at all: emit as-is
             flush()
             out.append(g)

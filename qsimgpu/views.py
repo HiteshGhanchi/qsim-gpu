@@ -13,7 +13,10 @@ Trace format (trace_version 1):
             "gate": null or {"name", "targets", "controls", "params"[, "matrix"]},
             "probabilities": [...]                      (when n <= full_probabilities_up_to)
             "marginals": {"qubits": [...], "probabilities": [...]}   (otherwise, if requested)
-            "bloch": [[x, y, z] for each qubit]          (when bloch=True)}
+            "bloch": [[x, y, z] for each qubit]          (when bloch=True)
+            "clbits": [bit 0, bit 1, ...]               (when the circuit has classical bits)}
+    Gates with a measurement or condition also carry "clbits" / "condition" fields. Steps whose
+    condition was false are still recorded, with the state unchanged.
 Matrices are written as nested [real, imag] pairs. Cost per step: one full-state pass per
 marginal, plus three passes per qubit for Bloch vectors.
 """
@@ -29,6 +32,7 @@ from numpy.typing import NDArray
 
 from qsimgpu.backends.base import Backend
 from qsimgpu.circuit import Circuit, Gate
+from qsimgpu.execution import RngLike
 
 TRACE_VERSION = 1
 
@@ -75,6 +79,10 @@ def snapshot(backend: Backend, max_qubits: int = 12) -> NDArray[np.complexfloati
 def gate_to_dict(gate: Gate) -> dict[str, Any]:
     d: dict[str, Any] = {"name": gate.name, "targets": list(gate.targets),
                          "controls": list(gate.controls), "params": list(gate.params)}
+    if gate.clbits:
+        d["clbits"] = list(gate.clbits)
+    if gate.condition is not None:
+        d["condition"] = {"clbits": list(gate.condition[0]), "value": gate.condition[1]}
     if gate.matrix is not None:
         d["matrix"] = [[[float(z.real), float(z.imag)] for z in row] for row in gate.matrix]
     return d
@@ -96,21 +104,28 @@ def _views(backend: Backend, full_up_to: int, marginal_qubits: Sequence[int] | N
 
 
 def step_trace(backend: Backend, circuit: Circuit, *, full_probabilities_up_to: int = 12,
-               marginal_qubits: Sequence[int] | None = None, bloch: bool = True) -> dict[str, Any]:
+               marginal_qubits: Sequence[int] | None = None, bloch: bool = True,
+               rng: RngLike = None) -> dict[str, Any]:
     """Reset the backend, run `circuit` one gate at a time and record the views after each gate.
 
     Full probabilities are recorded while n <= full_probabilities_up_to; above that, only the
     marginals of `marginal_qubits` (if given). The result is plain JSON-serialisable data.
     """
     backend.reset()
-    steps = [{"index": -1, "gate": None,
-              **_views(backend, full_probabilities_up_to, marginal_qubits, bloch)}]
+    steps: list[dict[str, Any]] = [{"index": -1, "gate": None,
+                                    **_views(backend, full_probabilities_up_to,
+                                             marginal_qubits, bloch)}]
+    if circuit.n_clbits:
+        steps[0]["clbits"] = [0] * circuit.n_clbits
 
     def record(i: int, gate: Gate, b: Backend) -> None:
-        steps.append({"index": i, "gate": gate_to_dict(gate),
-                      **_views(b, full_probabilities_up_to, marginal_qubits, bloch)})
+        step = {"index": i, "gate": gate_to_dict(gate),
+                **_views(b, full_probabilities_up_to, marginal_qubits, bloch)}
+        if circuit.n_clbits:
+            step["clbits"] = list(b.classical_bits)
+        steps.append(step)
 
-    backend.run(circuit, on_step=record)
+    backend.run(circuit, on_step=record, rng=rng)
     return {"trace_version": TRACE_VERSION, "n_qubits": backend.n_qubits, "steps": steps}
 
 

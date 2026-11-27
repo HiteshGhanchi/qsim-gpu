@@ -213,6 +213,17 @@ trace = views.step_trace(CudaBackend(2), bell)   # JSON-ready: probabilities + B
 sim.run(bell, on_step=lambda i, gate, backend: print(i, gate.name))
 ```
 
+Mid-circuit measurement, reset and classical conditions (teleportation, error correction):
+
+```python
+from qsimgpu.execution import run_shots
+
+c = Circuit(2, n_clbits=2).h(0).measure(0, 0)   # measure qubit 0 into classical bit 0
+c.x(1).c_if([0], 1).measure(1, 1)              # flip qubit 1 only if that bit was 1
+bits = CudaBackend(2).run(c, rng=42)           # same seed -> same bits on every backend
+counts = run_shots(CudaBackend(2), c, shots=1000, seed=1)   # {0b00: ~500, 0b11: ~500}
+```
+
 `scripts/gpu_cloud_run.sh` runs the tests and all benchmarks on a cloud GPU: on a free Kaggle T4
 with `python scripts/kaggle_run.py push`, or on Colab with `notebooks/colab_run.ipynb`.
 `python -m bench.report` then rewrites the result tables in this README from the JSON files.

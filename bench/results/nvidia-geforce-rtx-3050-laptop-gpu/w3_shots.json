@@ -1,0 +1,79 @@
+{
+  "benchmark": "w3_shots",
+  "suspect": false,
+  "environment": {
+    "timestamp_utc": "2026-11-27T14:41:11+00:00",
+    "python": "3.14.8",
+    "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "git_commit": "9fec291-dirty",
+    "gpu": {
+      "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "memory_total": "4096 MiB",
+      "driver": "535.309.01",
+      "max_sm_clock": "2100 MHz",
+      "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P0",
+        "current_sm_clock": "1500 MHz",
+        "current_mem_clock": "5870 MHz",
+        "power_draw": "18.05 W",
+        "temperature_c": "59",
+        "clock_event_reasons": "0x0000000000000000",
+        "pcie_gen": "4"
+      },
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "compute_capability": "8.6",
+      "total_memory_bytes": 4091478016,
+      "cuda_runtime": 12090,
+      "cuda_driver_api": 12020,
+      "nvrtc": "12.9"
+    },
+    "bandwidth_check": {
+      "copy_64MiB_GBps": 177.12432705730834,
+      "suspect": false,
+      "published_GBps": null
+    },
+    "nvcc": "not installed",
+    "packages": {
+      "numpy": "2.5.5",
+      "scipy": "1.18.1",
+      "cupy-cuda12x": "14.2.0",
+      "cupy-cuda13x": null,
+      "qiskit": "2.6.2",
+      "qiskit-aer": "0.18.4",
+      "qiskit-aer-gpu": null,
+      "cuquantum-python-cu12": null,
+      "cuquantum-python-cu13": null,
+      "qsim-gpu": "0.1.0"
+    }
+  },
+  "n": 12,
+  "gates": 60,
+  "rows": [
+    {
+      "backend": "numpy",
+      "case": "measure at end (sample once)",
+      "shots": 1000,
+      "ms": 1.6209670000080223
+    },
+    {
+      "backend": "numpy",
+      "case": "mid-circuit (re-run per shot)",
+      "shots": 1000,
+      "ms": 1686.955533999992
+    },
+    {
+      "backend": "cuda",
+      "case": "measure at end (sample once)",
+      "shots": 1000,
+      "ms": 1.6835260000220842
+    },
+    {
+      "backend": "cuda",
+      "case": "mid-circuit (re-run per shot)",
+      "shots": 1000,
+      "ms": 1559.3939749999777
+    }
+  ]
+}

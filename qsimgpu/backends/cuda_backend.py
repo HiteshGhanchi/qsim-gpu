@@ -19,9 +19,11 @@ from qsimgpu.backends.base import (
     StepCallback,
     check_basis_state,
     check_marginal_qubits,
+    check_unitary_gate,
     pauli_masks,
 )
 from qsimgpu.circuit import Circuit, Gate
+from qsimgpu.execution import RngLike, collapse_outcome, run_circuit
 from qsimgpu.kernels import build_source
 
 BLOCK = 256           # threads per block (also the reduction width in measure/expect.cu)
@@ -59,6 +61,7 @@ class CudaBackend:
             raise ValueError("CudaBackend supports 1..34 qubits")
         self._cp = cp
         self.n_qubits = n_qubits
+        self.classical_bits: tuple[int, ...] = ()
         self.dtype: np.dtype[Any] = np.dtype(dtype)
         if self.dtype not in (np.dtype(np.complex64), np.dtype(np.complex128)):
             raise ValueError("dtype must be complex64 or complex128")
@@ -86,11 +89,6 @@ class CudaBackend:
 
     def _scalar(self, z: complex) -> Any:
         return self.dtype.type(z)
-
-    def _check_qubits(self, gate: Gate) -> None:
-        bad = [q for q in gate.qubits if q >= self.n_qubits]
-        if bad:
-            raise ValueError(f"{gate.name}: qubit(s) {bad} out of range")
 
     def synchronize(self) -> None:
         self._cp.cuda.Device().synchronize()
@@ -191,7 +189,7 @@ class CudaBackend:
         return False
 
     def apply(self, gate: Gate) -> None:
-        self._check_qubits(gate)
+        check_unitary_gate(gate, self.n_qubits)
         if self.specialized and self._apply_specialized(gate):
             return
         if len(gate.targets) == 1:
@@ -199,13 +197,29 @@ class CudaBackend:
         else:
             self.apply_kq_matrix(gate.target_matrix(), gate.targets, gate.controls)
 
-    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
-        if circuit.n_qubits != self.n_qubits:
-            raise ValueError(f"circuit has {circuit.n_qubits} qubits, backend {self.n_qubits}")
-        for i, g in enumerate(circuit):
-            self.apply(g)
-            if on_step is not None:
-                on_step(i, g, self)
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None,
+            rng: RngLike = None) -> tuple[int, ...]:
+        return run_circuit(self, circuit, on_step, rng)
+
+    def reset_qubit(self, qubit: int, rng: np.random.Generator) -> None:
+        if self.measure_qubit(qubit, rng):
+            self.apply(Gate("x", (qubit,)))
+
+    def measure_qubit(self, qubit: int, rng: np.random.Generator) -> int:
+        """P(1) = (1 - <Z>)/2 from the expectation kernel (summed in double), then the collapse
+        is one apply_diag pass: diag(1/sqrt(p), 0) or diag(0, 1/sqrt(p)) on the qubit."""
+        if not 0 <= qubit < self.n_qubits:
+            raise ValueError(f"qubit {qubit} out of range")
+        norm2 = self._pauli_sum(0, 0).real
+        p_one = (norm2 - self._pauli_sum(0, 1 << qubit).real) / (2 * norm2)
+        outcome = collapse_outcome(p_one, rng)
+        scale = 1.0 / np.sqrt(p_one if outcome else 1.0 - p_one)
+        d0, d1 = (0.0, scale) if outcome else (scale, 0.0)
+        n_work = 1 << self.n_qubits
+        self._k_diag(self._grid(n_work), (BLOCK,),
+                     (self._psi, np.int64(n_work), np.int32(qubit), np.int64(0), np.int64(0),
+                      self._scalar(d0), self._scalar(d1)))
+        return outcome
 
     def marginal_probabilities(self, qubits: Sequence[int]) -> NDArray[np.float64]:
         """Marginal distribution of up to 12 qubits, reduced on the GPU (no full host copy)."""

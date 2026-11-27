@@ -128,6 +128,17 @@ If you know web backends, a rough mapping:
 All kernels use **grid-stride loops** (each thread handles items t, t + stride, …), so one
 launch shape works for any problem size.
 
+### `qsimgpu/execution.py`, measurement and classical control
+`run_circuit` is the single loop behind every backend's `run`: unitary gates go to `apply`,
+conditional gates are skipped unless the classical register matches, `measure` draws one random
+number and compares it with P(1) from the backend, and `reset` is a measurement plus an X. Both
+backends consume the random generator in the same order, so one seed gives the same bits on
+NumPy and CUDA. On the GPU, P(1) comes from the existing expectation kernel and the collapse is
+one `apply_diag` pass, so measurement needed no new CUDA code. `run_shots` samples once when all
+measurements are at the end, and otherwise re-runs the circuit per shot (about 1000× slower for
+1000 shots; `bench/run_shots_cost.py`). Fusion and `inverse()` treat measure, reset and
+conditions as barriers.
+
 ### `qsimgpu/views.py`, what a front end shows
 `marginal_probabilities` (distribution of up to 12 chosen qubits; on the GPU a reduction kernel
 with a shared-memory histogram, so the state is never copied to the host), `bloch_vector`
@@ -145,6 +156,8 @@ basis state. A one-gate block is left alone so it keeps its specialised kernel.
 ### `qsimgpu/algorithms/`
 | File | What it builds | Checked by |
 |---|---|---|
+| `teleport.py` | teleport a random qubit state with two classical bits | fidelity ≥ 1 − 10·tol for 50 random states, both backends |
+| `bitflip.py` | 3-qubit bit-flip code with syndrome measurement and conditional correction | every single X error (and none) corrected for random states |
 | `qft.py` | H + controlled-phase ladder + swaps; `qft_gates()` can target any qubit list (Shor uses it on 8 of 12 qubits) | QFT of each basis state equals e^{2πixk/N}/√N; a comb with spacing r peaks at multiples of N/r |
 | `grover.py` | oracle (X-wrapped multi-controlled Z) + diffusion; `optimal_iterations()` compares floor vs round of π/4·√N | n=2 certain after 1 round; n=3 gives 0.945 after 2; matches sin²((2k+1)θ) |
 | `shor15.py` | 8 input + 4 output qubits, controlled multiplication by a^(2^j) mod 15 as swap/X networks, inverse QFT, continued fractions + gcd | every multiplier circuit checked against a^p·y mod 15 for all y; a=7 peaks at 0/64/128/192; recovers r and 3 × 5 |
@@ -170,6 +183,7 @@ typed by hand.
 | `test_cuda_backend.py` | GPU vs explicit matrices and vs oracle, both kernel paths, sampling chi-square, expectations |
 | `test_algorithms.py` | GHZ, H-H, Grover, QFT, Shor on both backends |
 | `test_fusion.py` | fused circuit = unfused circuit, m = 1..5, CPU and GPU |
+| `test_measurement.py` | measure/reset/condition IR, 50/50 binomial test on \|+⟩, collapse and reset, identical bits on NumPy and CUDA, shots, teleportation, bit-flip code |
 | `test_views.py` | `on_step` order and count, marginal bit order, Bloch vectors of known states, trace format, NumPy vs CUDA traces |
 | `test_vqe.py` | Pauli rotations, UCCSD generators, data cross-checks, chemical accuracy over the grid |
 
@@ -188,6 +202,7 @@ typed by hand.
 | `run_b7_compare.py` | B7: same circuits on qsim, Aer CPU/GPU, cuStateVec |
 | `run_b8_scale.py` | B8: grow n until out of memory |
 | `run_vqe_h2.py` | the H₂ energy curve |
+| `run_shots_cost.py` | `run_shots` cost with and without mid-circuit measurement |
 | `run_step_overhead.py` | cost of the `on_step` hook and of traces; NumPy vs CUDA agreement of views |
 | `run_all.py` | everything above in order (`--big` for a 16 GB GPU) |
 | `report.py` | writes the README result tables from the JSON files (refuses files marked suspect) |

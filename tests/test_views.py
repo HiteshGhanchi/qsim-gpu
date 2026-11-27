@@ -160,3 +160,12 @@ def test_numpy_and_cuda_traces_agree(seed: int) -> None:
     a = views.step_trace(NumpyBackend(10), c)
     b = views.step_trace(_cuda(10), c)
     assert views.trace_max_difference(a, b) < VIEW_ATOL_COMPLEX64
+
+
+def test_trace_records_classical_bits_and_conditions(make: Callable[[int], Any]) -> None:
+    c = Circuit(2, n_clbits=1).x(0).measure(0, 0).x(1).c_if([0], 1)
+    tr = views.step_trace(make(2), c, rng=0)
+    assert [s["clbits"] for s in tr["steps"]] == [[0], [0], [1], [1]]
+    assert tr["steps"][2]["gate"]["clbits"] == [0]
+    assert tr["steps"][3]["gate"]["condition"] == {"clbits": [0], "value": 1}
+    assert tr["steps"][3]["probabilities"][0b11] == pytest.approx(1.0, abs=1e-6)

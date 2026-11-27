@@ -25,22 +25,33 @@ StepCallback = Callable[[int, "Gate", "Backend"], None]
 @runtime_checkable
 class Backend(Protocol):
     n_qubits: int
+    classical_bits: tuple[int, ...]  # bits written so far by the current/last run()
 
     def reset(self, basis_state: int = 0) -> None:
         """Set the state to one basis pattern (default |0...0>)."""
         ...
 
     def apply(self, gate: Gate) -> None:
-        """Apply one gate in place."""
+        """Apply one unitary gate in place (no measure, reset or condition: use run)."""
         ...
 
-    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
-        """Apply all gates of the circuit in order, in place.
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None,
+            rng: np.random.Generator | int | None = None) -> tuple[int, ...]:
+        """Apply all operations of the circuit in order, in place; return the classical bits.
 
-        If on_step is given it is called after every gate with (index, gate, backend), so a
-        caller can inspect the state between gates. The circuit is run exactly as given;
-        apply fusion beforehand only if per-gate steps are not needed.
+        If on_step is given it is called after every operation with (index, gate, backend), so
+        a caller can inspect the state between gates. `rng` (a Generator or a seed) drives
+        measurements; the same seed gives the same bits on every backend. The circuit is run
+        exactly as given; apply fusion beforehand only if per-gate steps are not needed.
         """
+        ...
+
+    def measure_qubit(self, qubit: int, rng: np.random.Generator) -> int:
+        """Measure one qubit: draw the outcome, collapse and renormalise the state."""
+        ...
+
+    def reset_qubit(self, qubit: int, rng: np.random.Generator) -> None:
+        """Put one qubit into |0> (measure, then flip if the outcome was 1)."""
         ...
 
     def marginal_probabilities(self, qubits: Sequence[int]) -> np.ndarray:
@@ -111,6 +122,16 @@ def check_marginal_qubits(qubits: Sequence[int], n_qubits: int) -> tuple[int, ..
     if len(qs) > MAX_MARGINAL_QUBITS:
         raise ValueError(f"at most {MAX_MARGINAL_QUBITS} qubits per marginal, got {len(qs)}")
     return qs
+
+
+def check_unitary_gate(gate: Gate, n_qubits: int) -> None:
+    """Backend.apply only takes unitary gates with qubits in range."""
+    if not gate.is_unitary:
+        raise ValueError(f"{gate.name} with a measurement, reset or condition must go through "
+                         "Backend.run, not apply")
+    bad = [q for q in gate.qubits if q >= n_qubits]
+    if bad:
+        raise ValueError(f"{gate.name}: qubit(s) {bad} out of range")
 
 
 def check_basis_state(basis_state: int, n_qubits: int) -> None:

@@ -8,6 +8,11 @@ Canonical encoding of controlled gates: `targets` holds only the target qubit(s)
 `controls` holds the control qubit(s). For example CNOT with control 0 and target 1 is
 Gate("cx", targets=(1,), controls=(0,)). Any 1-qubit gate may also carry controls
 (a generic controlled gate), e.g. Gate("z", targets=(3,), controls=(0, 1, 2)).
+
+Classical bits: a circuit may have n_clbits classical bits. Gate("measure", (q,), clbits=(c,))
+measures qubit q into bit c, collapsing the state; Gate("reset", (q,)) puts qubit q back to |0>.
+Any gate may carry a condition (clbits, value): it is applied only if the register formed by
+those bits equals value, with bit j of value belonging to clbits[j] (little-endian, like qubits).
 """
 
 from __future__ import annotations
@@ -31,6 +36,8 @@ class Gate:
     controls: tuple[int, ...] = ()
     params: tuple[float, ...] = ()
     matrix: Matrix | None = field(default=None, repr=False)  # only for name == "unitary"
+    clbits: tuple[int, ...] = ()  # only for "measure": where the result goes
+    condition: tuple[tuple[int, ...], int] | None = None  # (clbits, value): apply only if equal
 
     def __post_init__(self) -> None:
         if self.name not in gates.SPECS:
@@ -40,6 +47,19 @@ class Gate:
         object.__setattr__(self, "targets", tuple(int(q) for q in self.targets))
         object.__setattr__(self, "controls", tuple(int(q) for q in self.controls))
         object.__setattr__(self, "params", tuple(float(p) for p in self.params))
+        object.__setattr__(self, "clbits", tuple(int(c) for c in self.clbits))
+        if self.name == "measure" and len(self.clbits) != 1:
+            raise ValueError(f"measure needs exactly one clbit, got {self.clbits}")
+        if self.name != "measure" and self.clbits:
+            raise ValueError(f"only 'measure' writes clbits, not {self.name!r}")
+        if self.condition is not None:
+            bits, value = self.condition
+            bits = tuple(int(c) for c in bits)
+            if not bits or len(set(bits)) != len(bits) or any(c < 0 for c in bits):
+                raise ValueError(f"condition needs distinct, non-negative clbits, got {bits}")
+            if not 0 <= int(value) < (1 << len(bits)):
+                raise ValueError(f"condition value {value} does not fit in {len(bits)} bit(s)")
+            object.__setattr__(self, "condition", (bits, int(value)))
 
         if spec.n_targets is not None and len(self.targets) != spec.n_targets:
             raise ValueError(f"{self.name} needs {spec.n_targets} target(s), got {self.targets}")
@@ -79,13 +99,26 @@ class Gate:
     def kind(self) -> gates.Kind:
         return gates.SPECS[self.name].kind
 
+    @property
+    def is_unitary(self) -> bool:
+        """False for measure/reset and for any gate with a classical condition."""
+        return self.name not in gates.NONUNITARY and self.condition is None
+
+    def with_condition(self, clbits: Sequence[int], value: int) -> Gate:
+        return Gate(self.name, self.targets, self.controls, self.params, self.matrix,
+                    self.clbits, (tuple(clbits), value))
+
     def target_matrix(self) -> Matrix:
         """Matrix applied to the targets when every control is 1."""
+        if self.name in gates.NONUNITARY:
+            raise ValueError(f"{self.name} has no matrix; Backend.run handles it")
         if self.matrix is not None:
             return np.array(self.matrix, dtype=np.complex128)
         return gates.base_matrix(gates.SPECS[self.name].base, self.params)
 
     def inverse(self) -> Gate:
+        if not self.is_unitary:
+            raise ValueError(f"{self.name} (with its condition, if any) cannot be inverted")
         if self.name == "unitary":
             assert self.matrix is not None
             return Gate("unitary", self.targets, matrix=self.matrix.conj().T)
@@ -97,8 +130,9 @@ class Gate:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Gate):
             return NotImplemented
-        same = (self.name, self.targets, self.controls, self.params) == (
-            other.name, other.targets, other.controls, other.params)
+        same = (self.name, self.targets, self.controls, self.params, self.clbits,
+                self.condition) == (other.name, other.targets, other.controls, other.params,
+                                    other.clbits, other.condition)
         if not same:
             return False
         if self.matrix is None or other.matrix is None:
@@ -106,7 +140,8 @@ class Gate:
         return bool(np.array_equal(self.matrix, other.matrix))
 
     def __hash__(self) -> int:
-        return hash((self.name, self.targets, self.controls, self.params))
+        return hash((self.name, self.targets, self.controls, self.params, self.clbits,
+                     self.condition))
 
 
 class Circuit:
@@ -116,10 +151,13 @@ class Circuit:
         Circuit(2).h(0).cx(0, 1)
     """
 
-    def __init__(self, n_qubits: int, gate_list: Sequence[Gate] = ()) -> None:
+    def __init__(self, n_qubits: int, gate_list: Sequence[Gate] = (), n_clbits: int = 0) -> None:
         if n_qubits < 1:
             raise ValueError("a circuit needs at least one qubit")
+        if n_clbits < 0:
+            raise ValueError("n_clbits must be >= 0")
         self.n_qubits = n_qubits
+        self.n_clbits = n_clbits
         self.gates: list[Gate] = []
         for g in gate_list:
             self.append(g)
@@ -129,8 +167,36 @@ class Circuit:
         bad = [q for q in gate.qubits if q >= self.n_qubits]
         if bad:
             raise ValueError(f"{gate.name}: qubit(s) {bad} out of range for {self.n_qubits} qubits")
+        used = gate.clbits + (gate.condition[0] if gate.condition else ())
+        bad = [c for c in used if c >= self.n_clbits]
+        if bad:
+            raise ValueError(f"{gate.name}: clbit(s) {bad} out of range for {self.n_clbits} clbits")
         self.gates.append(gate)
         return self
+
+    def measure(self, qubit: int, clbit: int) -> Circuit:
+        """Measure qubit into clbit (collapses the state)."""
+        return self.append(Gate("measure", (qubit,), clbits=(clbit,)))
+
+    def reset(self, qubit: int) -> Circuit:
+        """Put qubit back to |0> (measure it, then flip it if the result was 1)."""
+        return self.append(Gate("reset", (qubit,)))
+
+    def c_if(self, clbits: Sequence[int], value: int) -> Circuit:
+        """Make the most recently added gate conditional: apply it only if the classical
+        register formed by `clbits` (bit j of value = clbits[j]) equals `value`."""
+        if not self.gates:
+            raise ValueError("c_if needs a gate to condition")
+        last = self.gates.pop()
+        try:
+            return self.append(last.with_condition(clbits, value))
+        except ValueError:
+            self.gates.append(last)
+            raise
+
+    @property
+    def is_unitary(self) -> bool:
+        return all(g.is_unitary for g in self.gates)
 
     def add(self, name: str, targets: Sequence[int], controls: Sequence[int] = (),
             params: Sequence[float] = ()) -> Circuit:
@@ -216,8 +282,12 @@ class Circuit:
 
     # --- whole-circuit operations ----------------------------------------
     def inverse(self) -> Circuit:
-        """The circuit that undoes this one: reversed order, each gate inverted."""
-        return Circuit(self.n_qubits, [g.inverse() for g in reversed(self.gates)])
+        """The circuit that undoes this one: reversed order, each gate inverted.
+
+        Raises ValueError if the circuit contains measure, reset or conditional gates.
+        """
+        return Circuit(self.n_qubits, [g.inverse() for g in reversed(self.gates)],
+                       n_clbits=self.n_clbits)
 
     def depth(self) -> int:
         """Number of layers when every gate starts as early as its qubits allow."""

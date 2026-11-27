@@ -24,8 +24,10 @@ from qsimgpu.backends.base import (
     check_basis_state,
     check_marginal_qubits,
     check_pauli,
+    check_unitary_gate,
 )
 from qsimgpu.circuit import Circuit, Gate
+from qsimgpu.execution import RngLike, collapse_outcome, run_circuit
 
 _PAULI = {
     "X": gates.base_matrix("x"),
@@ -41,6 +43,7 @@ class NumpyBackend:
         if not 1 <= n_qubits <= 28:
             raise ValueError("NumpyBackend supports 1..28 qubits")
         self.n_qubits = n_qubits
+        self.classical_bits: tuple[int, ...] = ()
         self._psi: NDArray[np.complex128] = np.zeros((2,) * n_qubits, dtype=np.complex128)
         self.reset()
 
@@ -88,18 +91,33 @@ class NumpyBackend:
         self._psi[tuple(index)] = out
 
     def apply(self, gate: Gate) -> None:
-        bad = [q for q in gate.qubits if q >= self.n_qubits]
-        if bad:
-            raise ValueError(f"{gate.name}: qubit(s) {bad} out of range")
+        check_unitary_gate(gate, self.n_qubits)
         self.apply_matrix(gate.target_matrix(), gate.targets, gate.controls)
 
-    def run(self, circuit: Circuit, on_step: StepCallback | None = None) -> None:
-        if circuit.n_qubits != self.n_qubits:
-            raise ValueError(f"circuit has {circuit.n_qubits} qubits, backend {self.n_qubits}")
-        for i, g in enumerate(circuit):
-            self.apply(g)
-            if on_step is not None:
-                on_step(i, g, self)
+    def run(self, circuit: Circuit, on_step: StepCallback | None = None,
+            rng: RngLike = None) -> tuple[int, ...]:
+        return run_circuit(self, circuit, on_step, rng)
+
+    def reset_qubit(self, qubit: int, rng: np.random.Generator) -> None:
+        if self.measure_qubit(qubit, rng):
+            self.apply(Gate("x", (qubit,)))
+
+    def measure_qubit(self, qubit: int, rng: np.random.Generator) -> int:
+        if not 0 <= qubit < self.n_qubits:
+            raise ValueError(f"qubit {qubit} out of range")
+        axis = self._axis(qubit)
+        one: list[int | slice] = [slice(None)] * self.n_qubits
+        one[axis] = 1
+        p_one = float(np.sum(np.abs(self._psi[tuple(one)]) ** 2))
+        outcome = collapse_outcome(p_one, rng)
+        keep = p_one if outcome else 1.0 - p_one
+        drop = list(one)
+        drop[axis] = 1 - outcome
+        kept = list(one)
+        kept[axis] = outcome
+        self._psi[tuple(drop)] = 0
+        self._psi[tuple(kept)] /= np.sqrt(keep)
+        return outcome
 
     def marginal_probabilities(self, qubits: Sequence[int]) -> NDArray[np.float64]:
         """Sum |amplitude|^2 over every pattern, grouped by the bits of `qubits`."""
