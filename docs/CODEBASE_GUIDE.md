@@ -167,7 +167,7 @@ typed by hand.
 ### `bench/`
 | File | Question |
 |---|---|
-| `run_env.py` | records GPU, driver, CUDA, NVRTC, library versions, git commit and live clock state; `time_gpu()` (CUDA events, warm-up, median of 7); `save_result()` |
+| `run_env.py` | records GPU, driver, CUDA, NVRTC, library versions, git commit, live clock state and a 64 MiB copy-bandwidth check (marked `suspect` below 50% of the GPU's published bandwidth); `time_gpu()` (CUDA events, warm-up, median of 7); `save_result()` writes to `results/<gpu>/` |
 | `run_tolerance.py` | how far does complex64 drift from the oracle? (sets the test tolerance) |
 | `run_b0_bandwidth.py` | B0: copy bandwidth, the yardstick |
 | `run_b1_target.py` | B1: does the target qubit change gate time? |
@@ -180,15 +180,19 @@ typed by hand.
 | `run_b8_scale.py` | B8: grow n until out of memory |
 | `run_vqe_h2.py` | the H₂ energy curve |
 | `run_all.py` | everything above in order (`--big` for a 16 GB GPU) |
-| `results/*.json` | every measured number, each with its environment record |
+| `report.py` | writes the README result tables from the JSON files (refuses files marked suspect) |
+| `results/<gpu>/*.json` | every measured number, one folder per GPU, each with its environment record |
 
 ### `docs/`
 `DECISIONS.md` (every choice, with the measurement or reason behind it), `ENVIRONMENT.md` (exact
 versions and how to recreate them), `WRITEUP.md` (one-page summary), and this guide.
 
-### `notebooks/colab_run.ipynb`
-Clones the repo on a Colab GPU, installs it, runs all tests and `bench.run_all --big`, and
-downloads the results.
+### Cloud GPU runs: `scripts/gpu_cloud_run.sh`, `scripts/kaggle_run.py`, `notebooks/`
+`gpu_cloud_run.sh` does everything a cloud GPU needs: picks a CuPy that can compile our kernels,
+installs the package, runs all tests and `bench.run_all --big`, runs the Aer GPU and cuStateVec
+comparisons in their own environments, and zips the results. `kaggle_run.py push|status|fetch`
+sends it to a free Kaggle T4 as a private script (`notebooks/kaggle/run_on_kaggle.py`) using the
+owner's own Kaggle CLI login; `notebooks/colab_run.ipynb` runs the same script on Colab.
 
 ### `lessons/`
 `lesson0.py` builds a 1- and 2-qubit simulator in plain Python. `lesson1_cuda.py` shows the

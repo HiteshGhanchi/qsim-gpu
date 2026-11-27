@@ -69,8 +69,11 @@ openfermion 1.8.1 on Python 3.14):
 uv venv --python 3.14 .venv-chem && uv pip install --python .venv-chem/bin/python pyscf openfermion
 ```
 
-## Google Colab
-`notebooks/colab_run.ipynb` installs the package on a Colab GPU runtime, records the
-environment and runs the tests and headline benchmarks. Colab runs its own Python version,
-which is why the package supports Python 3.12 and newer. Colab results have not been
-recorded yet.
+## Cloud GPUs (Kaggle T4, Colab)
+`scripts/gpu_cloud_run.sh` runs everything on a cloud GPU. On Kaggle it is launched with
+`python scripts/kaggle_run.py push` (private script, T4 accelerator; needs the Kaggle CLI and your
+own `~/.kaggle/` credentials, which the script never reads), then `status` and `fetch`. On Colab,
+`notebooks/colab_run.ipynb` runs the same script. As of November 2026 Colab ships CUDA 13 with
+`cupy-cuda13x` preinstalled and Python 3.13, so the script uses the preinstalled CuPy when it
+can compile our kernels and installs the matching `cupy-cuda<major>x[ctk]` otherwise. Cloud
+results have not been recorded yet.

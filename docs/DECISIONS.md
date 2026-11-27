@@ -323,3 +323,15 @@ W1 preparation, W2, W3, W4, rest of W5, W7, W6, W8, then W1 reporting once T4 re
 **W5 name decision (owner, 2026-11-27): change the name.** The import package becomes `qsimgpu`,
 matching the PyPI distribution name `qsim-gpu` (free on PyPI when checked on 2026-11-27, while
 `qsim` v0.22.0 and `qsimcirq` v0.22.1 are taken).
+
+### W1 implementation notes (2026-11-27)
+- Result files now live in one folder per GPU: `bench/results/<gpu-slug>/`. The laptop results
+  moved to `bench/results/nvidia-geforce-rtx-3050-laptop-gpu/`. File names in the sections above
+  refer to files now in that folder.
+- Every result records `bandwidth_check` (a 64 MiB copy). Published figures on file: T4, 320 GB/s
+  (NVIDIA product brief, 2020). Below 50% of that, the file is marked `"suspect": true` and a
+  warning is printed. GPUs without a published figure on file (such as the laptop's) get no gate.
+  Older files whose driver reported a faulty clock state also count as suspect.
+- README result tables are written by `python -m bench.report`, which refuses suspect files.
+- T4 runs go through Kaggle (`scripts/kaggle_run.py`) using the owner's own Kaggle CLI login; the
+  key is never read or stored by the project.
