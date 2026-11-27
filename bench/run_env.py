@@ -35,7 +35,9 @@ def _run(cmd: list[str]) -> str | None:
 def _git_commit() -> str | None:
     root = Path(__file__).resolve().parent.parent
     commit = _run(["git", "-C", str(root), "rev-parse", "--short", "HEAD"])
-    dirty = _run(["git", "-C", str(root), "status", "--porcelain", "--untracked-files=no"])
+    # Ignore bench/results: a benchmark run rewrites those files itself, which is not a code change.
+    dirty = _run(["git", "-C", str(root), "status", "--porcelain", "--untracked-files=no", "--",
+                  ".", ":(exclude)bench/results"])
     if commit and dirty:
         commit += "-dirty"
     return commit

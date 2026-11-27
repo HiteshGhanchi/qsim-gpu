@@ -32,7 +32,9 @@ def main() -> None:
         ["bench.run_b5_fusion", "--qubits", "24" if args.big else "22"],
         ["bench.run_b6_precision"],
         ["bench.run_b7_compare", "--engine", "qsim"],
+        ["bench.run_b7_compare", "--engine", "qsim-fused"],
         ["bench.run_b7_compare", "--engine", "aer-cpu"],
+        ["bench.run_b7_compare", "--engine", "aer-cpu-nofusion"],
         ["bench.run_b8_scale", "--dtype", "complex64", "--start", "26"],
         ["bench.run_b8_scale", "--dtype", "complex128", "--start", "26"],
         ["bench.run_vqe_h2", "--backend", "cuda", "--stage", "4q"],
@@ -41,8 +43,9 @@ def main() -> None:
         print(f"\n=== python -m {' '.join(step)}", flush=True)
         subprocess.run([sys.executable, "-m", *step], check=True)
     print("\nRun these in their own environments (see docs/ENVIRONMENT.md):")
-    print("  PYTHONPATH=. .venv-aergpu/bin/python -m bench.run_b7_compare --engine aer-gpu")
-    print("  PYTHONPATH=. .venv-cuq/bin/python -m bench.run_b7_compare --engine custatevec")
+    for env, engine in ((".venv-aergpu", "aer-gpu"), (".venv-aergpu", "aer-gpu-nofusion"),
+                        (".venv-cuq", "custatevec")):
+        print(f"  PYTHONPATH=. {env}/bin/python -m bench.run_b7_compare --engine {engine}")
 
 
 if __name__ == "__main__":
