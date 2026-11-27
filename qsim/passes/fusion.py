@@ -36,7 +36,7 @@ def block_matrix(block: list[Gate], qubits: tuple[int, ...]) -> NDArray[np.compl
     return out
 
 
-def fuse(circuit: Circuit, max_qubits: int = 3) -> Circuit:
+def fuse(circuit: Circuit, max_qubits: int = 2) -> Circuit:
     """Return an equivalent circuit where consecutive gates are merged into unitary gates."""
     if not 1 <= max_qubits <= 5:
         raise ValueError("max_qubits must be between 1 and 5 (largest kernel matrix is 32x32)")

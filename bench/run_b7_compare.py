@@ -14,10 +14,12 @@ Fairness rules (every engine follows all of them):
   Python, <Z> on qubit 0. No engine copies the statevector back. (Asking Aer for the whole
   statevector added ~16% to its GPU time at 24 qubits, while qsim returned nothing, which
   favoured qsim. This rule removes that.)
+- Same state size: Aer's qubit truncation is switched off, so every engine simulates all n
+  qubits.
 - Gate fusion: Aer fuses by default, so it is timed with and without fusion (`-nofusion`).
-  qsim is timed without fusion and with it (`qsim-fused`, m = 3); the fusion pass runs inside
-  the timed region, as Aer's does. cuStateVec is driven gate by gate through its general
-  apply_matrix call, with no fusion.
+  qsim is timed without fusion and with it (`qsim-fused`, m = 2, the best width in B5);
+  the fusion pass runs inside the timed region, as Aer's does. cuStateVec is driven gate
+  by gate through its general apply_matrix call, with no fusion.
 - Timing: wall clock around one full run, after one warm-up run, median of --repeats (7).
   Circuit construction and Aer transpilation happen before the clock starts.
 The <Z0> values of all engines are stored, so they can be checked against each other.
@@ -68,7 +70,7 @@ def engine_qsim(c: Circuit, fused: bool = False) -> Callable[[], float]:
 
     def run() -> float:
         b.reset()
-        b.run(fuse(c, 3) if fused else c)
+        b.run(fuse(c, 2) if fused else c)
         return b.expectation_pauli(_z0(c.n_qubits))  # returns to the host, so it synchronises
     return run
 
@@ -80,8 +82,10 @@ def engine_aer(c: Circuit, device: str, fusion: bool) -> Callable[[], float]:
 
     from tests.qiskit_bridge import to_qiskit
 
+    # enable_truncation=False: by default Aer drops qubits it judges inactive (it simulated
+    # only 21 of 24 qubits of the random circuit), which would no longer be the same job.
     sim = AerSimulator(method="statevector", device=device, precision="single",
-                       fusion_enable=fusion)
+                       fusion_enable=fusion, enable_truncation=False)
     qc = to_qiskit(c)
     qc.save_expectation_value(Pauli("Z"), [0])
     tqc = transpile(qc, sim, optimization_level=0)
