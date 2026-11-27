@@ -1,11 +1,11 @@
 {
   "benchmark": "b6_precision",
   "environment": {
-    "timestamp_utc": "2026-11-19T13:32:28+00:00",
+    "timestamp_utc": "2026-11-27T10:16:03+00:00",
     "python": "3.14.8",
     "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
     "cpu": "x86_64",
-    "git_commit": "f22e8b5",
+    "git_commit": "6f8587e",
     "gpu": {
       "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "memory_total": "4096 MiB",
@@ -13,15 +13,14 @@
       "max_sm_clock": "2100 MHz",
       "max_mem_clock": "5871 MHz",
       "state_at_run": {
-        "pstate": "P0",
-        "current_sm_clock": "[System is not in ready state]",
-        "current_mem_clock": "[System is not in ready state]",
-        "power_draw": "10.01 W",
-        "temperature_c": "72",
-        "clock_event_reasons": "[System is not in ready state]",
-        "pcie_gen": "1"
+        "pstate": "P3",
+        "current_sm_clock": "1822 MHz",
+        "current_mem_clock": "5485 MHz",
+        "power_draw": "28.59 W",
+        "temperature_c": "58",
+        "clock_event_reasons": "0x0000000000000024",
+        "pcie_gen": "4"
       },
-      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
       "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "compute_capability": "8.6",
       "total_memory_bytes": 4091478016,
@@ -66,27 +65,27 @@
   "speed_h_gate": [
     {
       "n": 20,
-      "complex64_ms_per_gate": 2.102954705556234,
-      "complex128_ms_per_gate": 4.2359466552734375,
-      "ratio_128_over_64": 2.014283352885161
+      "complex64_ms_per_gate": 0.10786133011182149,
+      "complex128_ms_per_gate": 0.2686293323834737,
+      "ratio_128_over_64": 2.4905063946919768
     },
     {
       "n": 22,
-      "complex64_ms_per_gate": 8.410794576009115,
-      "complex128_ms_per_gate": 16.91818618774414,
-      "ratio_128_over_64": 2.0114848882412897
+      "complex64_ms_per_gate": 0.4065279960632324,
+      "complex128_ms_per_gate": 1.1266773541768391,
+      "ratio_128_over_64": 2.771463134365764
     },
     {
       "n": 24,
-      "complex64_ms_per_gate": 33.68004353841146,
-      "complex128_ms_per_gate": 67.65704345703125,
-      "ratio_128_over_64": 2.0088169832639813
+      "complex64_ms_per_gate": 1.601194699605306,
+      "complex128_ms_per_gate": 4.55236275990804,
+      "ratio_128_over_64": 2.8431038155635893
     },
     {
       "n": 26,
-      "complex64_ms_per_gate": 135.15263875325522,
-      "complex128_ms_per_gate": 270.055419921875,
-      "ratio_128_over_64": 1.9981512933307088
+      "complex64_ms_per_gate": 6.394197463989258,
+      "complex128_ms_per_gate": 18.007381439208984,
+      "ratio_128_over_64": 2.816206653082373
     }
   ],
   "gpu_total_memory_bytes": 4091478016,

@@ -1,11 +1,11 @@
 {
   "benchmark": "b8_scale_complex128",
   "environment": {
-    "timestamp_utc": "2026-11-19T13:33:05+00:00",
+    "timestamp_utc": "2026-11-27T10:18:14+00:00",
     "python": "3.14.8",
     "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
     "cpu": "x86_64",
-    "git_commit": "f22e8b5",
+    "git_commit": "6f8587e",
     "gpu": {
       "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "memory_total": "4096 MiB",
@@ -13,15 +13,14 @@
       "max_sm_clock": "2100 MHz",
       "max_mem_clock": "5871 MHz",
       "state_at_run": {
-        "pstate": "P0",
-        "current_sm_clock": "[System is not in ready state]",
-        "current_mem_clock": "[System is not in ready state]",
-        "power_draw": "10.01 W",
-        "temperature_c": "71",
-        "clock_event_reasons": "[System is not in ready state]",
-        "pcie_gen": "1"
+        "pstate": "P3",
+        "current_sm_clock": "1965 MHz",
+        "current_mem_clock": "5485 MHz",
+        "power_draw": "28.55 W",
+        "temperature_c": "57",
+        "clock_event_reasons": "0x0000000000000024",
+        "pcie_gen": "4"
       },
-      "warning": "driver reports 'System is not in ready state' for clocks; bandwidth numbers from this run are not representative",
       "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "compute_capability": "8.6",
       "total_memory_bytes": 4091478016,
@@ -44,33 +43,11 @@
   "dtype": "complex128",
   "rows": [
     {
-      "n": 24,
-      "state_bytes": 268435456,
-      "ok": true,
-      "norm": 0.9999999999999999,
-      "ghz_seconds": 0.9885935370002699,
-      "sampled_patterns": [
-        0,
-        16777215
-      ]
-    },
-    {
-      "n": 25,
-      "state_bytes": 536870912,
-      "ok": true,
-      "norm": 0.9999999999999999,
-      "ghz_seconds": 1.9662691770026868,
-      "sampled_patterns": [
-        0,
-        33554431
-      ]
-    },
-    {
       "n": 26,
       "state_bytes": 1073741824,
       "ok": true,
       "norm": 0.9999999999999999,
-      "ghz_seconds": 4.063707550001709,
+      "ghz_seconds": 0.2858670410000741,
       "sampled_patterns": [
         0,
         67108863
@@ -81,7 +58,7 @@
       "state_bytes": 2147483648,
       "ok": true,
       "norm": 0.9999999999999999,
-      "ghz_seconds": 8.367206932001864,
+      "ghz_seconds": 0.4177084799998738,
       "sampled_patterns": [
         0,
         134217727

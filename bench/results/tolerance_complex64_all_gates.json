@@ -1,17 +1,26 @@
 {
   "benchmark": "tolerance_complex64_all_gates",
   "environment": {
-    "timestamp_utc": "2026-11-19T13:00:20+00:00",
+    "timestamp_utc": "2026-11-27T10:15:29+00:00",
     "python": "3.14.8",
     "platform": "Linux-6.5.0-44-generic-x86_64-with-glibc2.39",
     "cpu": "x86_64",
-    "git_commit": "e2e7b8f-dirty",
+    "git_commit": "6f8587e",
     "gpu": {
       "nvidia_smi_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "memory_total": "4096 MiB",
       "driver": "535.309.01",
       "max_sm_clock": "2100 MHz",
       "max_mem_clock": "5871 MHz",
+      "state_at_run": {
+        "pstate": "P3",
+        "current_sm_clock": "1500 MHz",
+        "current_mem_clock": "5485 MHz",
+        "power_draw": "14.97 W",
+        "temperature_c": "51",
+        "clock_event_reasons": "0x0000000000000024",
+        "pcie_gen": "4"
+      },
       "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
       "compute_capability": "8.6",
       "total_memory_bytes": 4091478016,
@@ -37,105 +46,105 @@
   "rows": [
     {
       "n": 1,
-      "max_abs_amp_error": 5.546416891949285e-07,
-      "max_norm_error": 5.199939498989892e-07
+      "max_abs_amp_error": 3.8428495923916863e-07,
+      "max_norm_error": 3.235955559066639e-07
     },
     {
       "n": 2,
-      "max_abs_amp_error": 3.4938618123379983e-07,
-      "max_norm_error": 4.192984264239641e-07
+      "max_abs_amp_error": 3.920492276436136e-07,
+      "max_norm_error": 5.427822709069829e-07
     },
     {
       "n": 3,
-      "max_abs_amp_error": 2.2571878468212627e-07,
-      "max_norm_error": 2.8360070480903943e-07
+      "max_abs_amp_error": 1.9420055067102237e-07,
+      "max_norm_error": 2.540107041371087e-07
     },
     {
       "n": 4,
-      "max_abs_amp_error": 1.5261536457179961e-07,
-      "max_norm_error": 2.357471047265136e-07
+      "max_abs_amp_error": 1.5512253505530854e-07,
+      "max_norm_error": 3.1505552477995025e-07
     },
     {
       "n": 5,
-      "max_abs_amp_error": 1.7446485726844529e-07,
-      "max_norm_error": 3.0596637845548e-07
+      "max_abs_amp_error": 1.8223615695984117e-07,
+      "max_norm_error": 3.296552386622409e-07
     },
     {
       "n": 6,
-      "max_abs_amp_error": 8.260212495129029e-08,
-      "max_norm_error": 1.7820573472437928e-07
+      "max_abs_amp_error": 8.469028752899624e-08,
+      "max_norm_error": 2.3729418308082728e-07
     },
     {
       "n": 7,
-      "max_abs_amp_error": 9.056774691339376e-08,
-      "max_norm_error": 2.537615212405697e-07
+      "max_abs_amp_error": 8.39523099434597e-08,
+      "max_norm_error": 2.2298956325883523e-07
     },
     {
       "n": 8,
-      "max_abs_amp_error": 1.2716473047060845e-07,
-      "max_norm_error": 2.3757190459328115e-07
+      "max_abs_amp_error": 9.530846506568399e-08,
+      "max_norm_error": 2.4652009200654135e-07
     },
     {
       "n": 9,
-      "max_abs_amp_error": 1.0528547163413916e-07,
-      "max_norm_error": 2.3989541508839807e-07
+      "max_abs_amp_error": 7.276554724695591e-08,
+      "max_norm_error": 2.4588626212906917e-07
     },
     {
       "n": 10,
-      "max_abs_amp_error": 7.509675223826423e-08,
-      "max_norm_error": 2.546944802839235e-07
+      "max_abs_amp_error": 7.61703281059037e-08,
+      "max_norm_error": 2.5944599535421276e-07
     },
     {
       "n": 11,
-      "max_abs_amp_error": 8.918868141484955e-08,
-      "max_norm_error": 2.3037575180850922e-07
+      "max_abs_amp_error": 1.0308504216624016e-07,
+      "max_norm_error": 2.5968712735746635e-07
     },
     {
       "n": 12,
-      "max_abs_amp_error": 7.832300945048081e-08,
-      "max_norm_error": 2.3300671359027803e-07
+      "max_abs_amp_error": 1.0091156841059741e-07,
+      "max_norm_error": 2.7201035357471426e-07
     },
     {
       "n": 13,
-      "max_abs_amp_error": 8.701037553452902e-08,
-      "max_norm_error": 3.0622687552384065e-07
+      "max_abs_amp_error": 9.832556227895054e-08,
+      "max_norm_error": 3.0995607946948667e-07
     },
     {
       "n": 14,
-      "max_abs_amp_error": 6.287634996656524e-08,
-      "max_norm_error": 1.7233557958462598e-07
+      "max_abs_amp_error": 8.119062613737899e-08,
+      "max_norm_error": 2.0320826699116168e-07
     },
     {
       "n": 15,
-      "max_abs_amp_error": 6.597610037410036e-08,
-      "max_norm_error": 1.7826378362340023e-07
+      "max_abs_amp_error": 6.445620628860986e-08,
+      "max_norm_error": 1.9700724263049807e-07
     },
     {
       "n": 16,
-      "max_abs_amp_error": 6.778233596945049e-08,
-      "max_norm_error": 2.8944554608667517e-07
+      "max_abs_amp_error": 5.147318510110019e-08,
+      "max_norm_error": 2.562628856894733e-07
     },
     {
       "n": 17,
-      "max_abs_amp_error": 7.699679601223539e-08,
-      "max_norm_error": 3.168020211719025e-07
+      "max_abs_amp_error": 6.725100284965678e-08,
+      "max_norm_error": 3.030380812951705e-07
     },
     {
       "n": 18,
-      "max_abs_amp_error": 7.048613518330562e-08,
-      "max_norm_error": 2.662331918257266e-07
+      "max_abs_amp_error": 8.035449429463404e-08,
+      "max_norm_error": 2.930375662124618e-07
     },
     {
       "n": 19,
-      "max_abs_amp_error": 1.0052068288143382e-07,
-      "max_norm_error": 2.2770563068430505e-07
+      "max_abs_amp_error": 7.333688283350354e-08,
+      "max_norm_error": 2.3637629675832272e-07
     },
     {
       "n": 20,
-      "max_abs_amp_error": 6.737925706961428e-08,
-      "max_norm_error": 2.1347704848295734e-07
+      "max_abs_amp_error": 6.517076064259528e-08,
+      "max_norm_error": 1.4710111528870584e-07
     }
   ],
-  "overall_max_abs_amp_error": 5.546416891949285e-07,
-  "overall_max_norm_error": 5.199939498989892e-07
+  "overall_max_abs_amp_error": 3.920492276436136e-07,
+  "overall_max_norm_error": 5.427822709069829e-07
 }
