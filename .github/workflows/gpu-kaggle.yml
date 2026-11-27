@@ -1,0 +1,39 @@
+name: GPU tests on Kaggle (manual)
+
+# Optional. Runs the full test suite, including GPU tests, on a free Kaggle T4 by pushing a
+# private Kaggle script, waiting for it and downloading the log. Started by hand only
+# (Actions -> "GPU tests on Kaggle (manual)" -> Run workflow), so it never uses GPU quota by
+# itself. One-time setup by the repository owner, in GitHub: Settings -> Secrets and variables
+# -> Actions: a secret KAGGLE_API_TOKEN (a Kaggle API token) and a variable KAGGLE_USERNAME.
+# The token never appears in the repository. The commit must already be pushed.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kaggle-gpu-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_USERNAME: ${{ vars.KAGGLE_USERNAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the Kaggle CLI
+        run: pip install kaggle six
+      - name: Start the run on a Kaggle T4
+        run: python scripts/kaggle_run.py push --tests-only
+      - name: Wait for it to finish
+        run: python scripts/kaggle_run.py wait
+      - name: Download the log
+        run: python scripts/kaggle_run.py fetch && unzip -o kaggle_out/results.zip -d kaggle_out
+      - name: Show the result
+        run: tail -n 5 kaggle_out/test_log.txt && ! grep -qE "[0-9]+ failed" kaggle_out/test_log.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kaggle-gpu-test-log
+          path: kaggle_out/

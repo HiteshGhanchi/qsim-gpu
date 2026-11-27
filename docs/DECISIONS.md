@@ -431,3 +431,30 @@ from it.
 - `release.yml`: a `v*` tag publishes to TestPyPI; real PyPI only when started by hand. Both use
   trusted publishing, which the owner must enable once on test.pypi.org and pypi.org (publisher =
   this repository + `release.yml`, environments `testpypi` and `pypi`). No tokens in the repository.
+
+## W7 result: golden files, so CPU-only CI checks GPU results (2026-11-27)
+
+- `scripts/make_goldens.py` runs 26 fixed circuits on the GPU:
+  - random circuits at 2–12 qubits;
+  - QFT at 4/8/12;
+  - Grover;
+  - GHZ;
+  - one circuit per gate family (diagonal, permutation, general, including multi-controlled
+    gates, controlled SWAP and a `unitary`);
+  - fused versions at widths 2–5, which exercise `apply_k2`…`apply_k5`.
+
+  Each runs in complex64 and complex128 (the family cases and one random case also through the
+  general kernels), giving 52 stored states, 1.5 MB in `tests/data/goldens/` (generated on the
+  RTX 3050 Laptop).
+- `metadata.json` holds each circuit as JSON (`views.circuit_to_dict`), the environment, and the
+  SHA-256 of `qsimgpu/kernels/*.cu`, `*.cuh` and `qsimgpu/backends/cuda_backend.py`.
+- `tests/test_goldens.py` (CPU) recomputes every circuit with the NumPy oracle and compares, within
+  the measured tolerances. If any watched file's hash differs, it fails with a message to regenerate
+  the goldens on a GPU. Checked: appending a comment to `gates.cu` makes it fail, and restoring the
+  file makes it pass.
+- Honest limit: CI still doesn't execute the kernels. It proves that the stored outputs of the
+  current kernel code are correct, and that the code hasn't changed since.
+- Optional `gpu-kaggle.yml` (manual only): pushes a private Kaggle script in tests-only mode, waits,
+  downloads the log and fails if any test failed. It needs the owner to add a secret
+  `KAGGLE_API_TOKEN` and a variable `KAGGLE_USERNAME` in the GitHub settings (the Kaggle CLI reads
+  the token from that environment variable). The workflow hasn't been run yet.

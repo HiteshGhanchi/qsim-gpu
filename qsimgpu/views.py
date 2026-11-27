@@ -88,6 +88,29 @@ def gate_to_dict(gate: Gate) -> dict[str, Any]:
     return d
 
 
+def gate_from_dict(d: dict[str, Any]) -> Gate:
+    """Inverse of gate_to_dict."""
+    matrix = None
+    if "matrix" in d:
+        matrix = np.array([[complex(re, im) for re, im in row] for row in d["matrix"]])
+    cond = d.get("condition")
+    return Gate(d["name"], tuple(d["targets"]), tuple(d["controls"]), tuple(d["params"]), matrix,
+                tuple(d.get("clbits", ())),
+                (tuple(cond["clbits"]), cond["value"]) if cond else None)
+
+
+def circuit_to_dict(circuit: Circuit) -> dict[str, Any]:
+    """A circuit as plain JSON data (gates as in step traces)."""
+    return {"n_qubits": circuit.n_qubits, "n_clbits": circuit.n_clbits,
+            "gates": [gate_to_dict(g) for g in circuit]}
+
+
+def circuit_from_dict(d: dict[str, Any]) -> Circuit:
+    """Inverse of circuit_to_dict."""
+    return Circuit(d["n_qubits"], [gate_from_dict(g) for g in d["gates"]],
+                   n_clbits=d.get("n_clbits", 0))
+
+
 def _views(backend: Backend, full_up_to: int, marginal_qubits: Sequence[int] | None,
            bloch: bool) -> dict[str, Any]:
     out: dict[str, Any] = {}

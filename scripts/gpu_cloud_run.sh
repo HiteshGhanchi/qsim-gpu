@@ -30,6 +30,13 @@ pip install -q -e ".[dev,compare]" || exit 1
 log "tests (CPU + GPU)"
 python -m pytest -q -rs 2>&1 | tee test_log.txt
 
+if [ "${QSIM_TESTS_ONLY:-0}" = "1" ]; then
+  log "tests-only mode: skipping benchmarks"
+  zip -qr results.zip test_log.txt
+  # pytest summary line, e.g. "2 failed" or "1 error" (not the image's unrelated warnings)
+  grep -qE "[0-9]+ (failed|errors?)\b" test_log.txt && exit 1 || exit 0
+fi
+
 log "benchmarks (16 GB settings)"
 python -m bench.run_all --big 2>&1 | tee bench_log.txt
 

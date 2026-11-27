@@ -52,6 +52,8 @@ If you know web backends, a rough mapping:
 | `LICENSE` | MIT. |
 | `CHANGELOG.md` | what changed in each version (semantic versioning) |
 | `.github/workflows/release.yml` | tag `v*` → build, check and publish to TestPyPI; real PyPI only when started by hand; trusted publishing, no tokens |
+| `scripts/make_goldens.py` | runs fixed circuits on the GPU and stores their outputs + kernel hashes in `tests/data/goldens/` (regenerate after any kernel change) |
+| `.github/workflows/gpu-kaggle.yml` | manual: runs the full GPU test suite on a Kaggle T4 using the owner's secret `KAGGLE_API_TOKEN` |
 | `scripts/check_wheel.py` | checks a built wheel contains the kernels and `py.typed`, installs it in a clean environment and runs a Bell circuit |
 | `.github/workflows/ci.yml` | GitHub Actions runs lint, type check and the CPU tests on Python 3.12 and 3.14, and builds the wheel and installs it in a clean environment. Free runners have no GPU, so GPU tests are skipped there (they skip themselves). |
 | `.gitignore` | Virtual environments and tool caches. |
@@ -197,6 +199,7 @@ typed by hand.
 | `test_cuda_backend.py` | GPU vs explicit matrices and vs oracle, both kernel paths, sampling chi-square, expectations |
 | `test_algorithms.py` | GHZ, H-H, Grover, QFT, Shor on both backends |
 | `test_fusion.py` | fused circuit = unfused circuit, m = 1..5, CPU and GPU |
+| `test_goldens.py` | stored GPU outputs vs the NumPy oracle on CPU, and kernel hashes vs the current files |
 | `test_qasm.py` | parsing, gate mapping, expressions, gate definitions, error positions, exact round trips, 22 MQT Bench files and random Qiskit circuits against Aer |
 | `test_measurement.py` | measure/reset/condition IR, 50/50 binomial test on \|+⟩, collapse and reset, identical bits on NumPy and CUDA, shots, teleportation, bit-flip code |
 | `test_views.py` | `on_step` order and count, marginal bit order, Bloch vectors of known states, trace format, NumPy vs CUDA traces |

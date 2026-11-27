@@ -251,6 +251,14 @@ print(to_qasm2(circuit))
 with `python scripts/kaggle_run.py push`, or on Colab with `notebooks/colab_run.ipynb`.
 `python -m bench.report` then rewrites the result tables in this README from the JSON files.
 
+## How GPU code is checked without a GPU in CI
+
+GitHub's free runners have no GPU. `scripts/make_goldens.py` stores the GPU's outputs for a fixed
+set of circuits, plus a SHA-256 of every kernel file, in `tests/data/goldens/`. CI recomputes each
+circuit with the NumPy reference and compares, and it fails if a kernel changed since the goldens
+were made. The goldens are regenerated on a GPU (`python scripts/make_goldens.py`, locally or
+through the manual Kaggle workflow).
+
 ## Conventions
 
 - Qubit 0 is the least significant bit of a state index (same as Qiskit).

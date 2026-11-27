@@ -4,6 +4,8 @@ Needs the Kaggle CLI and your own credentials in ~/.kaggle/ (this script never r
 CLI does). Phone verification on Kaggle is required for GPUs.
 
     python scripts/kaggle_run.py push      # upload and start a run at the current commit
+    python scripts/kaggle_run.py push --tests-only   # only the test suite (faster)
+    python scripts/kaggle_run.py wait      # block until the run finishes (for CI)
     python scripts/kaggle_run.py status
     python scripts/kaggle_run.py fetch     # download results.zip into kaggle_out/
 
@@ -20,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,18 +35,22 @@ def kaggle(*args: str) -> str:
 
 
 def username() -> str:
+    if os.environ.get("KAGGLE_USERNAME"):  # set in CI, where there is no ~/.kaggle config
+        return os.environ["KAGGLE_USERNAME"]
     match = re.search(r"username:\s*(\S+)", kaggle("config", "view"))
     if not match:
         sys.exit("could not find your Kaggle username; is the Kaggle CLI configured?")
     return match.group(1)
 
 
-def push() -> None:
+def push(tests_only: bool) -> None:
     commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], check=True,
                             capture_output=True, text=True).stdout.strip()
     with tempfile.TemporaryDirectory() as tmp:
         script = (ROOT / "notebooks/kaggle/run_on_kaggle.py").read_text()
         script = script.replace('REF = "main"', f'REF = "{commit}"')
+        if tests_only:
+            script = script.replace('TESTS_ONLY = "0"', 'TESTS_ONLY = "1"')
         Path(tmp, "run_on_kaggle.py").write_text(script)
         Path(tmp, "kernel-metadata.json").write_text(json.dumps({
             "id": f"{username()}/{SLUG}", "title": SLUG, "code_file": "run_on_kaggle.py",
@@ -58,7 +65,15 @@ def main() -> None:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
     ref = f"{username()}/{SLUG}"
     if cmd == "push":
-        push()
+        push("--tests-only" in sys.argv)
+    elif cmd == "wait":
+        for _ in range(120):  # up to 2 hours, checking once a minute
+            status = kaggle("kernels", "status", ref)
+            print(status.strip(), flush=True)
+            if any(s in status.upper() for s in ("COMPLETE", "ERROR", "CANCEL")):
+                sys.exit(0 if "COMPLETE" in status.upper() else 1)
+            time.sleep(60)
+        sys.exit("timed out waiting for the Kaggle run")
     elif cmd == "status":
         print(kaggle("kernels", "status", ref))
     elif cmd == "fetch":
